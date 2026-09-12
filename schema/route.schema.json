@@ -1,0 +1,237 @@
+{
+  "$defs": {
+    "ElevationProfileSection": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "elevation_profile",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "ElevationProfileSection",
+      "type": "object"
+    },
+    "GallerySection": {
+      "additionalProperties": false,
+      "properties": {
+        "media": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Media",
+          "type": "array"
+        },
+        "type": {
+          "const": "gallery",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "media"
+      ],
+      "title": "GallerySection",
+      "type": "object"
+    },
+    "MediaInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "author": {
+          "title": "Author",
+          "type": "string"
+        },
+        "license": {
+          "title": "License",
+          "type": "string"
+        }
+      },
+      "required": [
+        "author",
+        "license"
+      ],
+      "title": "MediaInfo",
+      "type": "object"
+    },
+    "TextSection": {
+      "additionalProperties": false,
+      "properties": {
+        "content": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "minProperties": 1,
+          "title": "Content",
+          "type": "object"
+        },
+        "type": {
+          "const": "text",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "content"
+      ],
+      "title": "TextSection",
+      "type": "object"
+    },
+    "VideoSection": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "video",
+          "title": "Type",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "url"
+      ],
+      "title": "VideoSection",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "cover_image": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Cover Image"
+    },
+    "difficulty": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Difficulty"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "lipas_id": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Lipas Id"
+    },
+    "maintainer": {
+      "anyOf": [
+        {
+          "enum": [
+            "municipal",
+            "non_municipal"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Maintainer"
+    },
+    "media": {
+      "additionalProperties": {
+        "$ref": "#/$defs/MediaInfo"
+      },
+      "default": {},
+      "title": "Media",
+      "type": "object"
+    },
+    "name": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "minProperties": 1,
+      "title": "Name",
+      "type": "object"
+    },
+    "seasons": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Seasons",
+      "type": "array"
+    },
+    "sections": {
+      "default": [],
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "elevation_profile": "#/$defs/ElevationProfileSection",
+            "gallery": "#/$defs/GallerySection",
+            "text": "#/$defs/TextSection",
+            "video": "#/$defs/VideoSection"
+          },
+          "propertyName": "type"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/TextSection"
+          },
+          {
+            "$ref": "#/$defs/GallerySection"
+          },
+          {
+            "$ref": "#/$defs/VideoSection"
+          },
+          {
+            "$ref": "#/$defs/ElevationProfileSection"
+          }
+        ]
+      },
+      "title": "Sections",
+      "type": "array"
+    },
+    "themes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Themes",
+      "type": "array"
+    },
+    "track": {
+      "default": "track.gpx",
+      "title": "Track",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "themes",
+    "seasons"
+  ],
+  "title": "Route",
+  "type": "object"
+}

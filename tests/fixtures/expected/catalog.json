@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-12T12:26:44Z",
+  "project": {
+    "name": {
+      "fi": "Testiprojekti",
+      "en": "Test project"
+    },
+    "subtitle": {
+      "fi": "pyöräillen testialueella",
+      "en": "cycling the test area"
+    },
+    "area": [
+      25.4,
+      66.3,
+      26.2,
+      66.7
+    ],
+    "languages": [
+      "fi",
+      "en"
+    ],
+    "default_language": "fi",
+    "default_theme": "gravel"
+  },
+  "themes": [
+    {
+      "id": "winter",
+      "name": {
+        "fi": "Talvimaasto",
+        "en": "Winter fatbiking"
+      },
+      "tagline": {
+        "fi": "Levyt renkaat, lumi ja jää",
+        "en": "Fat tyres, snow and ice"
+      },
+      "order": 1,
+      "colors": {
+        "primary": "#2F5F96",
+        "route": "#2F5F96",
+        "highlight": "#E8A33D"
+      },
+      "dark": true,
+      "default_layers": []
+    },
+    {
+      "id": "mtb",
+      "name": {
+        "fi": "Maasto",
+        "en": "Mountain biking"
+      },
+      "tagline": {
+        "fi": "Polut ja tekniset laskut",
+        "en": "Trails and technical descents"
+      },
+      "order": 2,
+      "colors": {
+        "primary": "#6E4C8F",
+        "route": "#6E4C8F",
+        "highlight": "#E8A33D"
+      },
+      "dark": false,
+      "default_layers": []
+    },
+    {
+      "id": "gravel",
+      "name": {
+        "fi": "Gravel",
+        "en": "Gravel"
+      },
+      "tagline": {
+        "fi": "Sorateitä ja metsäautoteitä",
+        "en": "Gravel and forest roads"
+      },
+      "order": 3,
+      "colors": {
+        "primary": "#9A6414",
+        "route": "#9A6414",
+        "highlight": "#E8A33D"
+      },
+      "dark": false,
+      "default_layers": []
+    },
+    {
+      "id": "road",
+      "name": {
+        "fi": "Maantie",
+        "en": "Road"
+      },
+      "tagline": {
+        "fi": "Asfaltti ja pyörätiet",
+        "en": "Asphalt and cycle paths"
+      },
+      "order": 4,
+      "colors": {
+        "primary": "#A8323E",
+        "route": "#A8323E",
+        "highlight": "#E8A33D"
+      },
+      "dark": false,
+      "default_layers": []
+    },
+    {
+      "id": "touring",
+      "name": {
+        "fi": "Retki",
+        "en": "Touring"
+      },
+      "tagline": {
+        "fi": "Monen päivän etapit",
+        "en": "Multi-day stages"
+      },
+      "order": 5,
+      "colors": {
+        "primary": "#3F6B4A",
+        "route": "#3F6B4A",
+        "highlight": "#E8A33D"
+      },
+      "dark": false,
+      "default_layers": []
+    }
+  ],
+  "layers": [],
+  "routes": [
+    {
+      "id": "test-loop",
+      "name": {
+        "fi": "Testilenkki",
+        "en": "Test loop"
+      },
+      "themes": [
+        "gravel"
+      ],
+      "seasons": [
+        "summer"
+      ],
+      "length_km": 1.3,
+      "ascent_m": 29,
+      "bbox": [
+        25.72,
+        66.499,
+        25.73,
+        66.5025
+      ]
+    }
+  ],
+  "overview": "overview.geojson"
+}

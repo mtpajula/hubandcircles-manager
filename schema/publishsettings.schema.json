@@ -1,0 +1,176 @@
+{
+  "$defs": {
+    "Frontend": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
+        },
+        "repo": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Repo"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        }
+      },
+      "title": "Frontend",
+      "type": "object"
+    },
+    "HeaderRule": {
+      "additionalProperties": false,
+      "properties": {
+        "cache": {
+          "enum": [
+            "immutable",
+            "short",
+            "none"
+          ],
+          "title": "Cache",
+          "type": "string"
+        },
+        "content_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Content Type"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "cache"
+      ],
+      "title": "HeaderRule",
+      "type": "object"
+    },
+    "Target": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
+        },
+        "project": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Project"
+        },
+        "repo": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Repo"
+        },
+        "type": {
+          "enum": [
+            "directory",
+            "cloudflare-pages",
+            "github-pages",
+            "azure-swa",
+            "firebase"
+          ],
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "title": "Target",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "frontend": {
+      "$ref": "#/$defs/Frontend",
+      "default": {
+        "path": null,
+        "repo": null,
+        "version": null
+      }
+    },
+    "headers": {
+      "items": {
+        "$ref": "#/$defs/HeaderRule"
+      },
+      "title": "Headers",
+      "type": "array"
+    },
+    "targets": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Target"
+      },
+      "title": "Targets",
+      "type": "array"
+    }
+  },
+  "required": [
+    "headers"
+  ],
+  "title": "PublishSettings",
+  "type": "object"
+}

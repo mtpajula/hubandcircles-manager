@@ -1,0 +1,19 @@
+{
+  "id": "winter",
+  "name": {
+    "fi": "Talvimaasto",
+    "en": "Winter fatbiking"
+  },
+  "tagline": {
+    "fi": "Levyt renkaat, lumi ja jää",
+    "en": "Fat tyres, snow and ice"
+  },
+  "order": 1,
+  "colors": {
+    "primary": "#2F5F96",
+    "route": "#2F5F96",
+    "highlight": "#E8A33D"
+  },
+  "dark": true,
+  "default_layers": []
+}

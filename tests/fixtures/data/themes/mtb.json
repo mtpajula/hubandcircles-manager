@@ -1,0 +1,19 @@
+{
+  "id": "mtb",
+  "name": {
+    "fi": "Maasto",
+    "en": "Mountain biking"
+  },
+  "tagline": {
+    "fi": "Polut ja tekniset laskut",
+    "en": "Trails and technical descents"
+  },
+  "order": 2,
+  "colors": {
+    "primary": "#6E4C8F",
+    "route": "#6E4C8F",
+    "highlight": "#E8A33D"
+  },
+  "dark": false,
+  "default_layers": []
+}

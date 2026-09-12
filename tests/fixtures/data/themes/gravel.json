@@ -1,0 +1,19 @@
+{
+  "id": "gravel",
+  "name": {
+    "fi": "Gravel",
+    "en": "Gravel"
+  },
+  "tagline": {
+    "fi": "Sorateitä ja metsäautoteitä",
+    "en": "Gravel and forest roads"
+  },
+  "order": 3,
+  "colors": {
+    "primary": "#9A6414",
+    "route": "#9A6414",
+    "highlight": "#E8A33D"
+  },
+  "dark": false,
+  "default_layers": []
+}

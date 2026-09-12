@@ -1,0 +1,256 @@
+{
+ "type": "FeatureCollection",
+ "features": [
+  {
+   "type": "Feature",
+   "id": "lipas_4411_maastopyorailyreitti.4d4a00f2-ea11-4024-ae3c-9a68837ce943",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      445229.2693,
+      7376018.7522
+     ],
+     [
+      445197.986,
+      7376011.4469
+     ]
+    ]
+   },
+   "geometry_name": "the_geom",
+   "properties": {
+    "id": 527767,
+    "nimi_fi": "Rollo MTB -maastopyöräilyreitti",
+    "nimi_se": null,
+    "nimi_en": null,
+    "www": null,
+    "koulun_liikuntapaikka": null,
+    "vapaa_kaytto": true,
+    "rakennusvuosi": 2015,
+    "peruskorjausvuodet": null,
+    "omistaja": "Ei tietoa",
+    "yllapitaja": "Rekisteröity yhdistys",
+    "kuntanumero": 698,
+    "kunta_nimi_fi": "Rovaniemi",
+    "kuntaosa": null,
+    "tyyppikoodi": 4411,
+    "tyyppi_nimi_fi": "Maastopyöräilyreitti",
+    "muokattu_viimeksi": "2021-09-08T09:03:08.930Z",
+    "reitti_id": 2,
+    "saa_julkaista_retkikartassa": null,
+    "reitin_leveys_m": null,
+    "pintamateriaali_lisatieto": null,
+    "reitin_pituus_km": "23",
+    "valaistua_km_reitti": null,
+    "pintamateriaali": "",
+    "lisatieto_fi": "Merkitty maalimerkein, suositeltava kiertosuunta myötäpäivään. Ylläpitäjä Ounaksen Pyörä-Pojat ry."
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "lipas_4411_maastopyorailyreitti.1e663cb8-8b81-4166-b851-903885954be8",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      445197.986,
+      7376011.4469
+     ],
+     [
+      444459.0072,
+      7376473.1042
+     ],
+     [
+      444524.3386,
+      7376669.3711
+     ],
+     [
+      445309.0953,
+      7376810.4672
+     ],
+     [
+      446299.9144,
+      7376956.8239
+     ],
+     [
+      447310.9238,
+      7376968.2406
+     ],
+     [
+      448517.2915,
+      7376012.6538
+     ],
+     [
+      448526.5827,
+      7375158.5589
+     ],
+     [
+      447281.2226,
+      7375474.6738
+     ],
+     [
+      446092.8037,
+      7375787.0146
+     ],
+     [
+      446739.2649,
+      7375729.6216
+     ],
+     [
+      447854.4502,
+      7375260.6113
+     ],
+     [
+      447008.6799,
+      7376265.5542
+     ],
+     [
+      446878.3971,
+      7375966.4492
+     ],
+     [
+      445698.0873,
+      7376633.1421
+     ],
+     [
+      445501.4835,
+      7376006.3719
+     ]
+    ]
+   },
+   "geometry_name": "the_geom",
+   "properties": {
+    "id": 527767,
+    "nimi_fi": "Rollo MTB -maastopyöräilyreitti",
+    "nimi_se": null,
+    "nimi_en": null,
+    "www": null,
+    "koulun_liikuntapaikka": null,
+    "vapaa_kaytto": true,
+    "rakennusvuosi": 2015,
+    "peruskorjausvuodet": null,
+    "omistaja": "Ei tietoa",
+    "yllapitaja": "Rekisteröity yhdistys",
+    "kuntanumero": 698,
+    "kunta_nimi_fi": "Rovaniemi",
+    "kuntaosa": null,
+    "tyyppikoodi": 4411,
+    "tyyppi_nimi_fi": "Maastopyöräilyreitti",
+    "muokattu_viimeksi": "2021-09-08T09:03:08.930Z",
+    "reitti_id": 1,
+    "saa_julkaista_retkikartassa": null,
+    "reitin_leveys_m": null,
+    "pintamateriaali_lisatieto": null,
+    "reitin_pituus_km": "23",
+    "valaistua_km_reitti": null,
+    "pintamateriaali": "",
+    "lisatieto_fi": "Merkitty maalimerkein, suositeltava kiertosuunta myötäpäivään. Ylläpitäjä Ounaksen Pyörä-Pojat ry."
+   }
+  },
+  {
+   "type": "Feature",
+   "id": "lipas_4411_maastopyorailyreitti.f436ae0c-0593-45d6-b381-2a32a6139ec1",
+   "geometry": {
+    "type": "LineString",
+    "coordinates": [
+     [
+      446046.8789,
+      7376402.1317
+     ],
+     [
+      445981.1921,
+      7376436.4103
+     ],
+     [
+      445794.636,
+      7376511.5112
+     ],
+     [
+      445711.5661,
+      7376530.4145
+     ],
+     [
+      445721.6649,
+      7376580.3902
+     ],
+     [
+      445704.0684,
+      7376647.7427
+     ],
+     [
+      445710.4141,
+      7376678.7259
+     ],
+     [
+      445613.6106,
+      7376718.6388
+     ],
+     [
+      445529.7995,
+      7376753.8406
+     ],
+     [
+      445392.9925,
+      7376807.0333
+     ],
+     [
+      445341.8526,
+      7376847.0623
+     ],
+     [
+      445638.9881,
+      7376862.6404
+     ],
+     [
+      445697.7182,
+      7376864.7254
+     ],
+     [
+      445682.1673,
+      7376895.4676
+     ],
+     [
+      445639.389,
+      7376935.4392
+     ],
+     [
+      445716.1783,
+      7376919.109
+     ],
+     [
+      445752.5887,
+      7376951.735
+     ]
+    ]
+   },
+   "geometry_name": "the_geom",
+   "properties": {
+    "id": 619056,
+    "nimi_fi": "Ounasvaara Trail Center - Loimu",
+    "nimi_se": "Ounasvaara Trail Center - Loimu",
+    "nimi_en": "Ounasvaara Trail Center - Loimu",
+    "www": "https://www.etiainen.fi/fi/pyoraily",
+    "koulun_liikuntapaikka": null,
+    "vapaa_kaytto": true,
+    "rakennusvuosi": 2025,
+    "peruskorjausvuodet": null,
+    "omistaja": "Kunta",
+    "yllapitaja": "Kunta / liikuntatoimi",
+    "kuntanumero": 698,
+    "kunta_nimi_fi": "Rovaniemi",
+    "kuntaosa": "Ounasvaara",
+    "tyyppikoodi": 4411,
+    "tyyppi_nimi_fi": "Maastopyöräilyreitti",
+    "muokattu_viimeksi": "2026-02-25T11:46:20.612Z",
+    "reitti_id": 1,
+    "saa_julkaista_retkikartassa": "true",
+    "reitin_leveys_m": "1.5",
+    "pintamateriaali_lisatieto": null,
+    "reitin_pituus_km": "1.79",
+    "valaistua_km_reitti": "0",
+    "pintamateriaali": "Kivituhka,Maa/luonnonmukainen",
+    "lisatieto_fi": null
+   }
+  }
+ ]
+}

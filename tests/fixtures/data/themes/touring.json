@@ -1,0 +1,19 @@
+{
+  "id": "touring",
+  "name": {
+    "fi": "Retki",
+    "en": "Touring"
+  },
+  "tagline": {
+    "fi": "Monen päivän etapit",
+    "en": "Multi-day stages"
+  },
+  "order": 5,
+  "colors": {
+    "primary": "#3F6B4A",
+    "route": "#3F6B4A",
+    "highlight": "#E8A33D"
+  },
+  "dark": false,
+  "default_layers": []
+}

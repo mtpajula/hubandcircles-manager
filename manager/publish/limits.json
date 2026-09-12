@@ -1,0 +1,7 @@
+{
+  "cloudflare-pages": { "max_files": 20000, "max_file_bytes": 26214400 },
+  "github-pages": { "max_total_bytes": 1073741824, "max_file_bytes": 104857600 },
+  "azure-swa": { "max_files": 15000, "max_total_bytes": 262144000 },
+  "firebase": {},
+  "directory": {}
+}

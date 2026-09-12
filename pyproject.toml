@@ -1,0 +1,30 @@
+[project]
+name = "hubandcircles-manager"
+version = "0.0.1"
+description = "Napa ja piirit / Hub & Circles – management tool"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2",
+    "gpxpy",
+    "shapely",
+    "pyproj",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "ruff",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["manager"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

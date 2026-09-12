@@ -1,0 +1,114 @@
+{
+  "$defs": {
+    "Colors": {
+      "additionalProperties": false,
+      "properties": {
+        "highlight": {
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "title": "Highlight",
+          "type": "string"
+        },
+        "primary": {
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "title": "Primary",
+          "type": "string"
+        },
+        "route": {
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "title": "Route",
+          "type": "string"
+        }
+      },
+      "required": [
+        "primary",
+        "route",
+        "highlight"
+      ],
+      "title": "Colors",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "basemap": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Basemap"
+    },
+    "colors": {
+      "$ref": "#/$defs/Colors"
+    },
+    "dark": {
+      "default": false,
+      "title": "Dark",
+      "type": "boolean"
+    },
+    "default_layers": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Default Layers",
+      "type": "array"
+    },
+    "icon": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Icon"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "name": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "minProperties": 1,
+      "title": "Name",
+      "type": "object"
+    },
+    "order": {
+      "title": "Order",
+      "type": "integer"
+    },
+    "tagline": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "minProperties": 1,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Tagline"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "order",
+    "colors"
+  ],
+  "title": "Theme",
+  "type": "object"
+}

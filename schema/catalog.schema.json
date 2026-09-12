@@ -1,0 +1,393 @@
+{
+  "$defs": {
+    "CatalogProject": {
+      "properties": {
+        "area": {
+          "anyOf": [
+            {
+              "maxItems": 4,
+              "minItems": 4,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Area"
+        },
+        "default_language": {
+          "title": "Default Language",
+          "type": "string"
+        },
+        "default_theme": {
+          "title": "Default Theme",
+          "type": "string"
+        },
+        "feedback": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Feedback"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "languages": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Languages",
+          "type": "array"
+        },
+        "name": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "minProperties": 1,
+          "title": "Name",
+          "type": "object"
+        },
+        "subtitle": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "minProperties": 1,
+          "title": "Subtitle",
+          "type": "object"
+        }
+      },
+      "required": [
+        "name",
+        "subtitle",
+        "languages",
+        "default_language",
+        "default_theme"
+      ],
+      "title": "CatalogProject",
+      "type": "object"
+    },
+    "Colors": {
+      "additionalProperties": false,
+      "properties": {
+        "highlight": {
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "title": "Highlight",
+          "type": "string"
+        },
+        "primary": {
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "title": "Primary",
+          "type": "string"
+        },
+        "route": {
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "title": "Route",
+          "type": "string"
+        }
+      },
+      "required": [
+        "primary",
+        "route",
+        "highlight"
+      ],
+      "title": "Colors",
+      "type": "object"
+    },
+    "Feedback": {
+      "additionalProperties": false,
+      "properties": {
+        "github_repo": {
+          "title": "Github Repo",
+          "type": "string"
+        },
+        "issue_form": {
+          "title": "Issue Form",
+          "type": "string"
+        }
+      },
+      "required": [
+        "github_repo",
+        "issue_form"
+      ],
+      "title": "Feedback",
+      "type": "object"
+    },
+    "RouteSummary": {
+      "properties": {
+        "ascent_m": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Ascent M"
+        },
+        "bbox": {
+          "maxItems": 4,
+          "minItems": 4,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Bbox",
+          "type": "array"
+        },
+        "cover_image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cover Image"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "length_km": {
+          "title": "Length Km",
+          "type": "number"
+        },
+        "maintainer": {
+          "anyOf": [
+            {
+              "enum": [
+                "municipal",
+                "non_municipal"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maintainer"
+        },
+        "name": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "minProperties": 1,
+          "title": "Name",
+          "type": "object"
+        },
+        "seasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Seasons",
+          "type": "array"
+        },
+        "themes": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Themes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "themes",
+        "seasons",
+        "length_km",
+        "bbox"
+      ],
+      "title": "RouteSummary",
+      "type": "object"
+    },
+    "Theme": {
+      "additionalProperties": false,
+      "properties": {
+        "basemap": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Basemap"
+        },
+        "colors": {
+          "$ref": "#/$defs/Colors"
+        },
+        "dark": {
+          "default": false,
+          "title": "Dark",
+          "type": "boolean"
+        },
+        "default_layers": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Default Layers",
+          "type": "array"
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Icon"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "minProperties": 1,
+          "title": "Name",
+          "type": "object"
+        },
+        "order": {
+          "title": "Order",
+          "type": "integer"
+        },
+        "tagline": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "minProperties": 1,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tagline"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "order",
+        "colors"
+      ],
+      "title": "Theme",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "coverage": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "default": {},
+      "title": "Coverage",
+      "type": "object"
+    },
+    "generated_at": {
+      "title": "Generated At",
+      "type": "string"
+    },
+    "layers": {
+      "default": [],
+      "items": {
+        "additionalProperties": true,
+        "type": "object"
+      },
+      "title": "Layers",
+      "type": "array"
+    },
+    "overview": {
+      "title": "Overview",
+      "type": "string"
+    },
+    "project": {
+      "$ref": "#/$defs/CatalogProject"
+    },
+    "routes": {
+      "items": {
+        "$ref": "#/$defs/RouteSummary"
+      },
+      "title": "Routes",
+      "type": "array"
+    },
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "services": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Services"
+    },
+    "themes": {
+      "items": {
+        "$ref": "#/$defs/Theme"
+      },
+      "title": "Themes",
+      "type": "array"
+    }
+  },
+  "required": [
+    "generated_at",
+    "project",
+    "themes",
+    "routes",
+    "overview"
+  ],
+  "title": "Catalog",
+  "type": "object"
+}

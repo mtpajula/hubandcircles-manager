@@ -1,0 +1,11 @@
+{
+  "id": "test-loop",
+  "name": { "fi": "Testilenkki", "en": "Test loop" },
+  "themes": ["gravel"],
+  "seasons": ["summer"],
+  "difficulty": "easy",
+  "track": "track.gpx",
+  "sections": [
+    { "type": "text", "content": { "fi": "Lyhyt testireitti.", "en": "A short test route." } }
+  ]
+}

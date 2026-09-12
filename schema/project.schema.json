@@ -1,0 +1,144 @@
+{
+  "$defs": {
+    "Feedback": {
+      "additionalProperties": false,
+      "properties": {
+        "github_repo": {
+          "title": "Github Repo",
+          "type": "string"
+        },
+        "issue_form": {
+          "title": "Issue Form",
+          "type": "string"
+        }
+      },
+      "required": [
+        "github_repo",
+        "issue_form"
+      ],
+      "title": "Feedback",
+      "type": "object"
+    },
+    "ItrsScales": {
+      "additionalProperties": false,
+      "description": "Number of levels of the ITRS exposure and wilderness scales; None = not locked yet.",
+      "properties": {
+        "exposure": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exposure"
+        },
+        "wilderness": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Wilderness"
+        }
+      },
+      "title": "ItrsScales",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "area": {
+      "maxItems": 4,
+      "minItems": 4,
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "title": "Area",
+      "type": "array"
+    },
+    "default_language": {
+      "title": "Default Language",
+      "type": "string"
+    },
+    "default_theme": {
+      "title": "Default Theme",
+      "type": "string"
+    },
+    "feedback": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Feedback"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "itrs_scales": {
+      "$ref": "#/$defs/ItrsScales",
+      "default": {
+        "exposure": null,
+        "wilderness": null
+      }
+    },
+    "languages": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Languages",
+      "type": "array"
+    },
+    "name": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "minProperties": 1,
+      "title": "Name",
+      "type": "object"
+    },
+    "nearby_services_m": {
+      "default": 500,
+      "title": "Nearby Services M",
+      "type": "integer"
+    },
+    "subtitle": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "minProperties": 1,
+      "title": "Subtitle",
+      "type": "object"
+    }
+  },
+  "required": [
+    "name",
+    "subtitle",
+    "area",
+    "languages",
+    "default_language",
+    "default_theme"
+  ],
+  "title": "Project",
+  "type": "object"
+}
