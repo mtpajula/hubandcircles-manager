@@ -83,7 +83,7 @@ class HardestSection(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     media: str  # key of route.media or a file under the route directory; checked in validate
-    km: float | None = None  # ponytail: computed from the image EXIF location in M3b
+    km: float | None = None  # ponytail: from the image EXIF location in M4 (build/projection.py)
     description: LangText | None = None
 
 

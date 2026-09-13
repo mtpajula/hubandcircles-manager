@@ -3,11 +3,13 @@
 from itertools import pairwise
 from pathlib import Path
 
+import gpxpy
 import pytest
 
 from manager.build import BuildError
-from manager.build.routes import process_route
-from manager.models import Route
+from manager.build.gpx import export_gpx
+from manager.build.routes import process_route, published_route
+from manager.models import Route, Segment
 
 from .conftest import FIXTURE
 
@@ -145,3 +147,79 @@ def test_only_single_point_segments_is_error(tmp_path):
     )
     with pytest.raises(BuildError, match="fewer than 2 points"):
         process_route(tmp_path, ROUTE)
+
+
+# --- km array and GPX export (7.11) ---------------------------------------------------------
+
+
+def test_km_per_coordinate():
+    result = process_route(FIXTURE / "routes" / "test-loop", Route(**ROUTE.model_dump()))
+    km = result.track["properties"]["km"]
+    assert len(km) == len(result.track["geometry"]["coordinates"])
+    assert km[0] == 0.0 and km == sorted(km)
+    assert km[-1] == pytest.approx(result.length_km, abs=0.05)
+    assert all(round(k, 3) == k for k in km)
+
+
+def test_km_per_part_of_multi_segment_track(tmp_path):
+    first = ['<trkpt lat="66.5" lon="25.72"/>', '<trkpt lat="66.501" lon="25.72"/>']
+    second = ['<trkpt lat="66.6" lon="25.72"/>', '<trkpt lat="66.601" lon="25.72"/>']
+    _gpx(tmp_path / "track.gpx", first, second)
+    result = process_route(tmp_path, ROUTE)
+    km = result.track["properties"]["km"]
+    parts = result.track["geometry"]["coordinates"]
+    assert [len(part) for part in km] == [len(part) for part in parts]
+    # Continues across parts without the gap, like length_km and the profile.
+    assert km[0] == pytest.approx([0.0, 0.112], abs=2e-3)
+    assert km[1] == pytest.approx([0.112, 0.223], abs=2e-3)
+
+
+def test_gpx_export_keeps_only_positions_and_elevations(tmp_path):
+    source = (
+        '<gpx version="1.1" creator="Private Phone App" xmlns="http://www.topografix.com/GPX/1/1">'
+        "<metadata><name>secret</name></metadata>"
+        '<wpt lat="66.5" lon="25.72"><name>home</name></wpt>'
+        "<trk><name>Original name</name><trkseg>"
+        '<trkpt lat="66.5" lon="25.72"><ele>100</ele><time>2026-08-14T10:00:00Z</time></trkpt>'
+        '<trkpt lat="66.501" lon="25.721"><time>2026-08-14T10:01:00Z</time></trkpt>'
+        "</trkseg><trkseg>"
+        '<trkpt lat="66.6" lon="25.72"><ele>110</ele></trkpt>'
+        '<trkpt lat="66.601" lon="25.72"><ele>115</ele></trkpt>'
+        "</trkseg></trk></gpx>"
+    )
+    (tmp_path / "track.gpx").write_text(source)
+    result = process_route(tmp_path, ROUTE)
+    xml = export_gpx(result.points, "Testilenkki")
+
+    text = xml.decode("utf-8")
+    assert "<time>" not in text and "<wpt" not in text and "<metadata>" not in text
+    assert "secret" not in text and "Original name" not in text and "Private" not in text
+    parsed = gpxpy.parse(text)
+    assert len(parsed.tracks) == 1 and parsed.tracks[0].name == "Testilenkki"
+    assert [len(s.points) for s in parsed.tracks[0].segments] == [2, 2]
+    assert [p.elevation for p in parsed.tracks[0].segments[0].points] == [100.0, None]
+    assert parsed.tracks[0].segments[1].points[0].latitude == 66.6
+
+
+def test_published_route_computed_fields():
+    route = ROUTE.model_copy(
+        update={
+            "segments": [
+                Segment(start_km=0.0, end_km=0.8, surface="gravel", traffic="separated"),
+                Segment(start_km=1.0, end_km=1.3, surface="trail"),
+            ]
+        }
+    )
+    result = process_route(FIXTURE / "routes" / "test-loop", route)
+    published = published_route(route, result, gpx_bytes=123)
+    assert [(s.start_km, s.end_km) for s in published.segments] == [
+        (0, 0.8),
+        (0.8, 1.0),
+        (1.0, 1.3),
+    ]
+    assert published.surface_shares == {"gravel": 0.62, "trail": 0.23, "unknown": 0.15}
+    assert published.traffic_shares == {"separated": 0.62, "unknown": 0.38}
+    assert published.itrs_technical_shares is None
+    assert published.dominant_surface == "gravel" and published.separated_share == 0.62
+    assert published.gpx == "route.gpx" and published.gpx_bytes == 123
+    assert published.hardest_section is None

@@ -22,6 +22,11 @@
   "itrs": {
     "endurance": "blue"
   },
+  "dominant_surface": "gravel",
+  "separated_share": 0.0,
+  "surface_shares": {
+    "gravel": 1.0
+  },
   "track": "track.geojson",
   "profile": [
     [
@@ -84,5 +89,10 @@
       "traffic": "quiet"
     }
   ],
-  "non_municipal_reasons": []
+  "non_municipal_reasons": [],
+  "traffic_shares": {
+    "quiet": 1.0
+  },
+  "gpx": "route.gpx",
+  "gpx_bytes": 1161
 }

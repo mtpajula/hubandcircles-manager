@@ -20,15 +20,18 @@ def test_golden(tmp_path):
     # Chapter 5.6 / 5.8: five themes in `order`, each with tagline, dark and presentation.
     assert [t["id"] for t in catalog["themes"]] == ["winter", "mtb", "gravel", "road", "touring"]
     assert all("tagline" in t and "dark" in t and "presentation" in t for t in catalog["themes"])
-    # The list card fields of 5.6 are in the summary; computed ones are absent until M3b (P11).
+    # The list card fields of 5.6 are in the summary, including the computed ones of 7.11.
     summary = catalog["routes"][0]
     assert summary["difficulty"] == "easy" and summary["itrs"] == {"endurance": "blue"}
-    assert "dominant_surface" not in summary and "surface_shares" not in summary
+    assert summary["dominant_surface"] == "gravel" and summary["surface_shares"] == {"gravel": 1.0}
+    assert summary["separated_share"] == 0.0  # traffic is known (quiet), none of it separated
     assert catalog["schema_version"] == 1 and catalog["layers"] == []
     assert "services" not in catalog and "coverage" not in catalog
 
     route = (tmp_path / "dist" / "routes" / "test-loop" / "route.json").read_text()
     assert route == (EXPECTED / "route.json").read_text()
     assert (tmp_path / "dist" / "routes" / "test-loop" / "track.geojson").is_file()
+    gpx = tmp_path / "dist" / "routes" / "test-loop" / "route.gpx"
+    assert gpx.stat().st_size == json.loads(route)["gpx_bytes"]
     assert (tmp_path / "dist" / "overview.geojson").is_file()
     assert not (tmp_path / "dist.tmp").exists()

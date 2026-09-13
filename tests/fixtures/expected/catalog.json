@@ -256,6 +256,11 @@
       "difficulty": "easy",
       "itrs": {
         "endurance": "blue"
+      },
+      "dominant_surface": "gravel",
+      "separated_share": 0.0,
+      "surface_shares": {
+        "gravel": 1.0
       }
     }
   ],

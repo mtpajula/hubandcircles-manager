@@ -70,6 +70,10 @@ def test_preview_serves_bundle(data, dist, frontend, tmp_path):
             assert r.headers["Content-Type"] == "application/geo+json"
             assert r.headers["Cache-Control"] == "no-cache"
             assert json.loads(r.read())["type"] == "FeatureCollection"
+        route = catalog.routes[0].id
+        with urllib.request.urlopen(f"{root}/data/routes/{route}/route.gpx", timeout=5) as r:
+            assert r.status == 200
+            assert r.headers["Content-Type"] == "application/gpx+xml"
     finally:
         server.shutdown()
         server.server_close()

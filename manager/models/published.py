@@ -33,7 +33,7 @@ class RouteSummary(BaseModel):
     difficulty: Difficulty | None = None
     itrs: Itrs | None = None
     winter_maintenance: WinterMaintenance | None = None
-    # ponytail: computed in M3b (build/presentation.py); None until then.
+    # Computed in build/segments.py (7.11); None when the route has no segments (P11).
     dominant_surface: str | None = None  # a surface, `mixed`, or None without segments
     separated_share: float | None = None
     surface_shares: dict[str, float] | None = None
@@ -66,7 +66,7 @@ class PublishedRoute(RouteSummary):
     segments: list[PublishedSegment] = []
     non_municipal_reasons: list[NonMunicipalReason] = []
     maintenance_note: LangText | None = None
-    # ponytail: computed in M3b (build/presentation.py, GPX export); None until then.
+    # Computed in build/segments.py and build/gpx.py (7.11).
     traffic_shares: dict[str, float] | None = None
     itrs_technical_shares: dict[str, float] | None = None
     gpx: str | None = None

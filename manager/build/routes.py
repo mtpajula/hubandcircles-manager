@@ -1,4 +1,4 @@
-"""Build stage: routes. GPX → GeoJSON, simplification, length, ascent, bbox, profile (7.2)."""
+"""Build stage: routes. GPX → GeoJSON, simplification, length, ascent, bbox, profile, km (7.2)."""
 
 from dataclasses import dataclass
 from itertools import pairwise
@@ -11,10 +11,11 @@ from shapely.geometry import LineString
 from shapely.ops import transform
 
 from manager.build.errors import BuildError
-from manager.models import Bbox, PublishedRoute, PublishedSegment, Route
+from manager.build.projection import to_m
+from manager.build.segments import dominant, normalise, shares
+from manager.models import Bbox, PublishedRoute, Route
 
 # Same as the example in chapter 7.3: metres in EPSG:3067, degrees in WGS84.
-to_m = Transformer.from_crs(4326, 3067, always_xy=True).transform
 to_deg = Transformer.from_crs(3067, 4326, always_xy=True).transform
 geod = Geod(ellps="WGS84")
 
@@ -26,11 +27,22 @@ Coordinates = list[tuple[float, float]]  # WGS84 (lon, lat)
 
 @dataclass
 class RouteResult:
-    track: dict  # GeoJSON Feature, LineString or MultiLineString WGS84
+    track: dict  # GeoJSON Feature, LineString or MultiLineString WGS84, properties.km (below)
     length_km: float
     ascent_m: int | None  # None when the track has no elevations (P11)
     bbox: Bbox
     profile: list[tuple[float, float]]  # [cumulative km, elevation m]
+    points: list[list[gpxpy.gpx.GPXTrackPoint]]  # source points per segment, for route.gpx
+
+
+def cumulative_m(coords: Coordinates, start_m: float = 0.0) -> list[float]:
+    """Geodesic distance along the coordinates, in metres; one value per point, first = start."""
+    lons = [lon for lon, _ in coords]
+    lats = [lat for _, lat in coords]
+    result = [start_m]
+    for m in geod.inv(lons[:-1], lats[:-1], lons[1:], lats[1:])[2]:
+        result.append(result[-1] + m)
+    return result
 
 
 def simplify(line: LineString, tolerance_m: float) -> list[tuple[float, float]]:
@@ -81,13 +93,18 @@ def process_route(directory: Path, route: Route) -> RouteResult:
     # the first point of a segment has the same km as the last point of the previous one.
     km_per_point: list[float] = []
     lines: list[Coordinates] = []
+    # properties.km (7.11): cumulative km, 3 decimals, for every coordinate of the published
+    # (simplified) geometry. LineString → one list aligned with `coordinates`; MultiLineString →
+    # one list per part aligned with `coordinates[i]`, continuing across parts like length_km.
+    km_per_coordinate: list[list[float]] = []
+    line_m: list[float] = []
     for points in segments:
-        lons = [p.longitude for p in points]
-        lats = [p.latitude for p in points]
-        km_per_point.append(km_per_point[-1] if km_per_point else 0.0)
-        for m in geod.inv(lons[:-1], lats[:-1], lons[1:], lats[1:])[2]:
-            km_per_point.append(km_per_point[-1] + m)
-        lines.append(simplify(LineString(zip(lons, lats)), 2))
+        coords = [(p.longitude, p.latitude) for p in points]
+        km_per_point += cumulative_m(coords, km_per_point[-1] if km_per_point else 0.0)
+        line = simplify(LineString(coords), 2)
+        lines.append(line)
+        line_m = cumulative_m(line, line_m[-1] if line_m else 0.0)
+        km_per_coordinate.append([round(m / 1000, 3) for m in line_m])
     points = [p for seg in segments for p in seg]
     lons = [p.longitude for p in points]
     lats = [p.latitude for p in points]
@@ -106,7 +123,10 @@ def process_route(directory: Path, route: Route) -> RouteResult:
 
     track = {
         "type": "Feature",
-        "properties": {"id": route.id},
+        "properties": {
+            "id": route.id,
+            "km": km_per_coordinate[0] if len(lines) == 1 else km_per_coordinate,
+        },
         "geometry": line_geometry(lines),
     }
     return RouteResult(
@@ -115,15 +135,18 @@ def process_route(directory: Path, route: Route) -> RouteResult:
         ascent_m=ascent_m,
         bbox=(round(min(lons), 4), round(min(lats), 4), round(max(lons), 4), round(max(lats), 4)),
         profile=profile,
+        points=segments,
     )
 
 
-def published_route(route: Route, result: RouteResult) -> PublishedRoute:
-    """route.json: source card + computed fields (5.3). V0: no media, no nearby services.
+def published_route(route: Route, result: RouteResult, gpx_bytes: int) -> PublishedRoute:
+    """route.json: source card + computed fields (5.3, 7.11).
 
-    ponytail: segments are copied as given; normalisation, shares, dominant surface and the
-    GPX export are M3b (build/presentation.py).
+    ponytail: no media (M4: WebP, EXIF, hardest_section.km) and no services (service gaps).
     """
+    segments = normalise(route.segments, result.length_km)
+    surface_shares = shares(segments, result.length_km, "surface")
+    traffic_shares = shares(segments, result.length_km, "traffic")
     return PublishedRoute(
         id=route.id,
         name=route.name,
@@ -143,7 +166,15 @@ def published_route(route: Route, result: RouteResult) -> PublishedRoute:
         sections=route.sections,
         maintenance_url=route.maintenance_url,
         hardest_section=route.hardest_section,
-        segments=[PublishedSegment.model_validate(s.model_dump()) for s in route.segments],
+        segments=segments,
+        surface_shares=surface_shares,
+        traffic_shares=traffic_shares,
+        itrs_technical_shares=shares(segments, result.length_km, "itrs_technical"),
+        dominant_surface=dominant(surface_shares),
+        # 0.0 is a known share (traffic is known, none of it separated); None = not known.
+        separated_share=traffic_shares.get("separated", 0.0) if traffic_shares else None,
         non_municipal_reasons=route.non_municipal_reasons,
         maintenance_note=route.maintenance_note,
+        gpx="route.gpx",
+        gpx_bytes=gpx_bytes,
     )

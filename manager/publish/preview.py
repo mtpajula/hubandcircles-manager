@@ -23,6 +23,7 @@ class _Handler(SimpleHTTPRequestHandler):
     extensions_map: ClassVar[dict[str, str]] = {
         **SimpleHTTPRequestHandler.extensions_map,
         ".geojson": "application/geo+json",
+        ".gpx": "application/gpx+xml",
         ".pmtiles": "application/vnd.pmtiles",
     }
 

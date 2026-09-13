@@ -59,7 +59,7 @@ def check_all(
         "links": check_links(tmp_dir),
         "references": check_references(source),
         "presentation": check_presentation(source),
-        "segments": check_segments(published),
+        "segments": check_segments(source, published),
         "hardest_section": check_hardest_section(source),
         "itrs_values": check_itrs_values(source),
         "maintenance_reasons": check_maintenance_reasons(source),
