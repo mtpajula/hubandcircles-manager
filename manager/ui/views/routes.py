@@ -280,6 +280,10 @@ if route is not None:
             st.caption(texts.IMAGES_NONE)
         removed: list[str] = []
         edited: dict[str, MediaInfo] = {}
+        in_gallery_now = {
+            key for s in route.sections if s.type == "gallery" for key in s.media
+        } or set(route.media)  # a route without a gallery section shows every image
+        in_gallery: list[str] = []
         for key, info in route.media.items():
             image_column, author_column, license_column, remove_column = st.columns([1, 3, 3, 1])
             if (directory / key).is_file():
@@ -297,6 +301,10 @@ if route is not None:
                 removed.append(key)
             else:
                 edited[key] = MediaInfo(author=author.strip(), license=licence.strip())
+                if remove_column.checkbox(
+                    texts.IMAGE_IN_GALLERY, value=key in in_gallery_now, key=f"gallery_{key}{k}"
+                ):
+                    in_gallery.append(key)
         cover_options = [None, *edited, *new_media]
         cover = st.selectbox(
             texts.COVER_IMAGE,
@@ -323,8 +331,9 @@ if route is not None:
                         st.session_state["last_author"] = latest.author
                         st.session_state["last_license"] = latest.license
                     st.session_state["upload_round"] = upload_round + 1
+                    updated = base.model_copy(update={"media": media, "cover_image": cover})
                     save(
-                        base.model_copy(update={"media": media, "cover_image": cover}),
+                        store.with_gallery(updated, [*in_gallery, *new_media]),
                         texts.IMAGES_SAVED.format(count=len(media)),
                         images=files,
                     )

@@ -185,6 +185,7 @@ IMAGES_UPLOAD_HINT = "Alkuperäiset kuvat suoraan kamerasta, jotta EXIF-sijainni
 IMAGE_AUTHOR = "Kuvaaja"
 IMAGE_LICENSE = "Lisenssi"
 IMAGE_LICENSE_DEFAULT = "CC BY 4.0"
+IMAGE_IN_GALLERY = "galleriassa"
 IMAGE_REMOVE = "poista"
 IMAGE_FILE_MISSING = "tiedosto puuttuu"
 IMAGES_NONE = "Reitillä ei ole vielä kuvia."

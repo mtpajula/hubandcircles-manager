@@ -152,3 +152,18 @@ def with_description(route: Route, content: LangText) -> Route:
     if content:
         sections.insert(index or 0, TextSection(type="text", content=content))
     return route.model_copy(update={"sections": sections})
+
+
+def with_gallery(route: Route, keys: list[str]) -> Route:
+    """The route with its gallery section set to `keys` (in media order), removed when empty.
+
+    The gallery is a section so the editor can place it among the texts; the images page keeps it
+    in sync with the "in gallery" choice per image.
+    """
+    others = [s for s in route.sections if s.type != "gallery"]
+    if not keys:
+        return route.model_copy(update={"sections": others})
+    gallery = GallerySection(type="gallery", media=keys)
+    position = next((i for i, s in enumerate(route.sections) if s.type == "gallery"), len(others))
+    sections = [*others[:position], gallery, *others[position:]]
+    return route.model_copy(update={"sections": sections})

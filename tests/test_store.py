@@ -156,3 +156,20 @@ def test_remove_media_drops_file_and_every_reference(data):
     assert (data / "routes" / "test-loop" / "track.gpx").is_file()
     with pytest.raises(store.StoreError, match="no such route"):
         store.remove_media(data, "nope", "media/a.jpg")
+
+
+def test_with_gallery_sets_replaces_and_removes_the_section():
+    from manager.models.route import GallerySection, Route, TextSection
+
+    route = Route(
+        id="r",
+        name={"fi": "R"},
+        themes=["mtb"],
+        sections=[TextSection(type="text", content={"fi": "x"})],
+    )
+    with_two = store.with_gallery(route, ["media/a.jpg", "media/b.jpg"])
+    assert [s.type for s in with_two.sections] == ["text", "gallery"]
+    replaced = store.with_gallery(with_two, ["media/b.jpg"])
+    assert isinstance(replaced.sections[1], GallerySection)
+    assert replaced.sections[1].media == ["media/b.jpg"]
+    assert [s.type for s in store.with_gallery(replaced, []).sections] == ["text"]
