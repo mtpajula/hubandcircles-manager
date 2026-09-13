@@ -155,10 +155,28 @@ def snapshot(routes: list[LipasRoute]) -> dict:
     }
 
 
+def snapshot_path(data_dir: Path) -> Path:
+    return data_dir / "sources" / "lipas.geojson"
+
+
 def write_snapshot(data_dir: Path, routes: list[LipasRoute]) -> Path:
-    path = data_dir / "sources" / "lipas.geojson"
+    path = snapshot_path(data_dir)
     write_json(path, snapshot(routes))
     return path
+
+
+def read_snapshot(data_dir: Path) -> list[LipasRoute]:
+    """Inverse of write_snapshot: the routes of sources/lipas.geojson, parts back in EPSG:3067."""
+    collection = json.loads(snapshot_path(data_dir).read_text(encoding="utf-8"))
+    return [
+        LipasRoute(
+            **feature["properties"],
+            parts=[
+                [to_m(lon, lat) for lon, lat in part] for part in feature["geometry"]["coordinates"]
+            ],
+        )
+        for feature in collection["features"]
+    ]
 
 
 def slugify(text: str) -> str:

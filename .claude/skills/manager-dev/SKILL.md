@@ -66,7 +66,7 @@ on testattu; käytä niitä lähtökohtana.
 | Lähdedata → julkaisudata | `manager/build/<stage>.py`, yksi vaihe per moduuli (luku 7.2). Esitystavan laskennat `build/presentation.py`, projisointi `build/projection.py`. |
 | Tarkistus, joka voi keskeyttää buildin | `manager/validate/<check>.py`, palauttaa `list[Finding]` |
 | Kohdeadapteri | `manager/publish/targets/<target>.py`, rajat `publish/limits.json` |
-| Streamlit-sivu | `manager/ui/pages/<n>_<page>.py`, ohut: lomake → paketin funktio → tulos. Tekstit `ui/texts.py`. |
+| Streamlit-sivu | `manager/ui/views/<page>.py` (ei `pages/`: Streamlit rekisteröisi sen itse), ohut: lomake → paketin funktio → tulos. Tekstit `ui/texts.py`. |
 
 ## Ei laiska näissä
 

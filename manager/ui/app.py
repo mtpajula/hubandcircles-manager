@@ -11,7 +11,8 @@ from manager.ui import texts
 load_env()
 st.set_page_config(page_title=texts.APP_TITLE, layout="wide")
 
-PAGES = Path(__file__).parent / "pages"  # English file names; Finnish titles from texts.py
+# Not "pages/": Streamlit auto-registers that folder. English file names, Finnish titles from texts.
+PAGES = Path(__file__).parent / "views"
 navigation = st.navigation(
     [
         st.Page(PAGES / "routes.py", title=texts.PAGE_ROUTES, url_path="routes", default=True),

@@ -174,3 +174,17 @@ def test_cli_import_lipas_offline(tmp_path, monkeypatch, capsys):
     assert "527767  4411  Rollo MTB -maastopy" in out and "created rollo-mtb" in out
     assert (data / "sources" / "lipas.geojson").is_file()
     assert (data / "routes" / "rollo-mtb-maastopyorailyreitti" / "track.gpx").is_file()
+
+
+def test_read_snapshot_inverts_write_snapshot(tmp_path, routes):
+    lipas.write_snapshot(tmp_path, routes)
+    reread = lipas.read_snapshot(tmp_path)
+    assert [r.lipas_id for r in reread] == [r.lipas_id for r in routes]
+    for a, b in zip(reread, routes):
+        assert {k: getattr(a, k) for k in lipas.PROPERTY_KEYS} == {
+            k: getattr(b, k) for k in lipas.PROPERTY_KEYS
+        }
+        assert len(a.parts) == len(b.parts)
+        for part_a, part_b in zip(a.parts, b.parts):
+            for (x1, y1), (x2, y2) in zip(part_a, part_b, strict=True):
+                assert abs(x1 - x2) < 0.5 and abs(y1 - y2) < 0.5  # 6 WGS84 decimals ~ 0.1 m

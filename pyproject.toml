@@ -8,7 +8,7 @@ dependencies = [
     "gpxpy",
     "shapely",
     "pyproj",
-    "streamlit>=1.40",
+    "streamlit>=1.50",
 ]
 
 [dependency-groups]

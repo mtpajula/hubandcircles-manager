@@ -293,7 +293,7 @@ requires-dist = [
     { name = "pydantic", specifier = ">=2" },
     { name = "pyproj" },
     { name = "shapely" },
-    { name = "streamlit", specifier = ">=1.40" },
+    { name = "streamlit", specifier = ">=1.50" },
 ]
 
 [package.metadata.requires-dev]
