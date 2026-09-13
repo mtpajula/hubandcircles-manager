@@ -156,9 +156,12 @@ def published_route(
     cover = media.get(route.cover_image or "")
     cover_image = f"routes/{route.id}/{cover.sizes['400']}" if cover else None
     hardest = route.hardest_section
-    if hardest is not None and hardest.km is None:
+    hardest_image = None
+    if hardest is not None:
         image = media.get(hardest.media)
-        if image is not None and image.location is not None:
+        if image is not None:
+            hardest_image = f"routes/{route.id}/{image.sizes['400']}"
+        if hardest.km is None and image is not None and image.location is not None:
             lines = geometry_lines(result.track["geometry"])
             hardest = hardest.model_copy(
                 update={"km": round(km_along_lines(lines, image.location), 1)}
@@ -175,6 +178,7 @@ def published_route(
         ascent_m=result.ascent_m,
         bbox=result.bbox,
         cover_image=cover_image,
+        hardest_image=hardest_image,
         maintainer=route.maintainer,
         difficulty=route.difficulty,
         itrs=route.itrs,

@@ -29,6 +29,9 @@ class RouteSummary(BaseModel):
     ascent_m: int | None = None  # None when the track has no elevations (P11)
     bbox: Bbox
     cover_image: str | None = None
+    # The hardest section's 400 px image as a data-root path, so the list can honour a theme
+    # whose presentation.hero_image is `hardest_section` (5.6); None without one (P11).
+    hardest_image: str | None = None
     maintainer: Maintainer | None = None
     difficulty: Difficulty | None = None
     itrs: Itrs | None = None

@@ -380,6 +380,18 @@
           "default": null,
           "title": "Dominant Surface"
         },
+        "hardest_image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Hardest Image"
+        },
         "id": {
           "title": "Id",
           "type": "string"

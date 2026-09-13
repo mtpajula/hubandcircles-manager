@@ -457,6 +457,18 @@
       "default": null,
       "title": "Gpx Bytes"
     },
+    "hardest_image": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Hardest Image"
+    },
     "hardest_section": {
       "anyOf": [
         {

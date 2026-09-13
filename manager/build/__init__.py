@@ -14,6 +14,7 @@ from manager.build.media import publish_media
 from manager.build.overview import overview
 from manager.build.read import read_source_data
 from manager.build.routes import process_route, published_route
+from manager.report import presentation_coverage
 from manager.validate import CHECKS, Finding, check_all
 
 __all__ = ["BuildError", "BuildReport", "build", "is_stale"]
@@ -26,6 +27,8 @@ class BuildReport:
     warnings: list[str] = field(default_factory=list)
     # Every CHECKS key; warnings and infos only, since an error stops the build.
     findings_by_check: dict[str, list[Finding]] = field(default_factory=dict)
+    # Rows of report.presentation_coverage (7.2, report): shown by the build page.
+    presentation_coverage: list[dict] = field(default_factory=list)
 
     @property
     def infos(self) -> list[str]:
@@ -109,6 +112,7 @@ def build(data_dir: Path, dist_dir: Path) -> BuildReport:
         first_visit_bytes=first_visit,
         warnings=[x.message for x in findings if x.level == "warning"],
         findings_by_check={c: [x for x in findings if x.check == c] for c in CHECKS},
+        presentation_coverage=presentation_coverage(source, published),
     )
 
 

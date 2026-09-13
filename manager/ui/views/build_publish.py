@@ -96,6 +96,25 @@ with st.container(border=True):
             with st.expander(texts.CHECK_SHOW):
                 for finding in findings:
                     st.text(finding.message)
+        st.markdown(f"**{texts.COVERAGE_HEADER}**")
+        labels = texts.COVERAGE_COLUMNS
+        st.dataframe(
+            [
+                {
+                    labels["theme"]: row["theme"],
+                    labels["slot"]: texts.COVERAGE_SLOT_NAMES[row["slot"]],
+                    labels["item"]: texts.KEY_FIGURE_NAMES.get(
+                        row["item"], texts.BAND_LANE_NAMES.get(row["item"], row["item"])
+                    ),
+                    labels["routes"]: texts.COVERAGE_ROUTES.format(
+                        with_data=row["routes_with_data"], routes=row["routes"]
+                    ),
+                }
+                for row in report.presentation_coverage
+            ],
+            width="stretch",
+            hide_index=True,
+        )
 
 stale = is_stale(source, dist)  # after the build button, so a fresh build counts at once
 

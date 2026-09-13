@@ -1,5 +1,7 @@
 """Segment normalisation and shares (5.3, 7.11)."""
 
+import pytest
+
 from manager.build.segments import dominant, normalise, shares
 from manager.models import PublishedSegment, Segment
 
@@ -83,3 +85,12 @@ def test_dominant_at_least_half_else_mixed():
     assert dominant({"gravel": 0.49, "asphalt": 0.31, "trail": 0.2}) == "mixed"
     assert dominant({"gravel": 1.0}) == "gravel"
     assert dominant(None) is None
+
+
+def test_covered_km_counts_segments_that_say_anything():
+    from manager.build.segments import covered_km
+
+    assert covered_km([]) == 0.0
+    assert covered_km(
+        [_seg(0, 1.0, surface="gravel"), _seg(1.0, 1.5), _seg(2.0, 2.4, itrs_technical="red")]
+    ) == pytest.approx(1.4)

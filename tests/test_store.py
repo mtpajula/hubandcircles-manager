@@ -110,3 +110,49 @@ def test_save_route_writes_images_under_media(data):
     assert (directory / "media" / "img-0001.jpg").read_bytes() == b"\xff\xd8jpeg"
     assert (directory / "media" / "kivikkoinen-lasku.jpeg").read_bytes() == b"\xff\xd8other"
     assert store.media_key("IMG 0001.JPG") == "media/img-0001.jpg"
+
+
+def test_save_route_accepts_a_grown_media_dict(data):
+    from manager.models import MediaInfo
+
+    existing = next(r for _, r in read_source_data(data).routes)
+    grown = existing.model_copy(
+        update={"media": {"media/img-0001.jpg": MediaInfo(author="A", license="CC0")}}
+    )
+    store.save_route(data, grown, images=[("IMG 0001.JPG", b"\xff\xd8jpeg")])
+    reread = next(r for _, r in read_source_data(data).routes)
+    assert reread.media == grown.media
+    assert (data / "routes" / "test-loop" / "media" / "img-0001.jpg").is_file()
+
+
+def test_remove_media_drops_file_and_every_reference(data):
+    from manager.models import HardestSection, MediaInfo
+
+    info = MediaInfo(author="A", license="CC0")
+    existing = next(r for _, r in read_source_data(data).routes)
+    card = existing.model_copy(
+        update={
+            "media": {"media/a.jpg": info, "media/b.jpg": info},
+            "cover_image": "media/a.jpg",
+            "hardest_section": HardestSection(media="media/a.jpg", km=0.5),
+            "sections": [
+                *existing.sections,
+                GallerySection(type="gallery", media=["media/a.jpg", "media/b.jpg"]),
+            ],
+        }
+    )
+    store.save_route(data, card, images=[("a.jpg", b"a"), ("b.jpg", b"b")])
+    updated = store.remove_media(data, "test-loop", "media/a.jpg")
+    assert list(updated.media) == ["media/b.jpg"]
+    assert updated.cover_image is None and updated.hardest_section is None
+    assert updated.sections[-1].media == ["media/b.jpg"]
+    assert not (data / "routes" / "test-loop" / "media" / "a.jpg").exists()
+    assert (data / "routes" / "test-loop" / "media" / "b.jpg").is_file()
+    assert next(r for _, r in read_source_data(data).routes) == updated
+    store.remove_media(data, "test-loop", "media/missing.jpg")  # a missing file is not an error
+    for bad in ("track.gpx", "media/../track.gpx", "media/x/y.jpg"):
+        with pytest.raises(store.StoreError, match="media key"):
+            store.remove_media(data, "test-loop", bad)
+    assert (data / "routes" / "test-loop" / "track.gpx").is_file()
+    with pytest.raises(store.StoreError, match="no such route"):
+        store.remove_media(data, "nope", "media/a.jpg")

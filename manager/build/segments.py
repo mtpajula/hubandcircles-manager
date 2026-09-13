@@ -44,6 +44,15 @@ def normalise(segments: Sequence[Segment], length_km: float) -> list[PublishedSe
     return result
 
 
+def covered_km(segments: Sequence[Segment]) -> float:
+    """Length of the segments that say anything (any attribute set); gaps do not count."""
+    return sum(
+        s.end_km - s.start_km
+        for s in segments
+        if s.surface is not None or s.traffic is not None or s.itrs_technical is not None
+    )
+
+
 def shares(
     segments: Sequence[Segment], length_km: float, attribute: ShareAttribute
 ) -> dict[str, float] | None:

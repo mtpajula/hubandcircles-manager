@@ -1,7 +1,8 @@
 """Write source data (route, theme, project) into DATA_DIR. The UI only calls; this module writes.
 
 Every write goes through write_json (one JSON writer, rule 3 of the skill). The route directory
-removal in delete_route is the only deletion the tool performs.
+removal in delete_route and the image removal in remove_media are the only deletions the tool
+performs.
 """
 
 import re
@@ -12,7 +13,7 @@ import gpxpy
 import gpxpy.gpx
 
 from manager.build import write_json
-from manager.models import LangText, Project, Route, TextSection, Theme
+from manager.models import GallerySection, LangText, Project, Route, TextSection, Theme
 from manager.slug import slugify
 
 __all__ = [
@@ -20,6 +21,7 @@ __all__ = [
     "delete_route",
     "description",
     "media_key",
+    "remove_media",
     "route_dir",
     "save_project",
     "save_route",
@@ -79,6 +81,38 @@ def save_route(
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data)
     return directory
+
+
+def remove_media(data_dir: Path, route_id: str, key: str) -> Route:
+    """Delete the image file and drop `key` from media, cover, hardest section and galleries.
+
+    The card is rewritten and returned. A missing file is not an error; a key outside media/
+    is refused so that the track or the card can never be deleted this way.
+    """
+    directory = route_dir(data_dir, route_id)
+    if not key.startswith("media/") or "/" in key[len("media/") :] or ".." in key:
+        raise StoreError(f"{key!r} is not a media key")
+    if not (directory / "route.json").is_file():
+        raise StoreError(f"{directory}: no such route")
+    route = Route.model_validate_json((directory / "route.json").read_bytes())
+    sections = [
+        s.model_copy(update={"media": [m for m in s.media if m != key]})
+        if isinstance(s, GallerySection)
+        else s
+        for s in route.sections
+    ]
+    hardest = route.hardest_section
+    updated = route.model_copy(
+        update={
+            "media": {k: v for k, v in route.media.items() if k != key},
+            "cover_image": None if route.cover_image == key else route.cover_image,
+            "hardest_section": None if hardest and hardest.media == key else hardest,
+            "sections": sections,
+        }
+    )
+    (directory / key).unlink(missing_ok=True)
+    write_json(directory / "route.json", updated.model_dump(mode="json", exclude_none=True))
+    return updated
 
 
 def delete_route(data_dir: Path, route_id: str) -> None:

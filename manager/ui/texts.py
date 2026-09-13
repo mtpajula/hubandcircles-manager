@@ -74,6 +74,11 @@ CHECK_WARNING = "! {name} · {count} varoitusta"
 CHECK_INFO = "i {name} · {count} tietoa"
 CHECK_SHOW = "Näytä"
 
+COVERAGE_HEADER = "Esitystavan kattavuus teemoittain"
+COVERAGE_COLUMNS = {"theme": "teema", "slot": "kohta", "item": "tieto", "routes": "reittejä"}
+COVERAGE_SLOT_NAMES = {"key_figures": "avainluku", "band": "nauha"}
+COVERAGE_ROUTES = "{with_data} / {routes} reittiä"
+
 STEP_PREVIEW_HEADER = "2 · Esikatselu"
 STEP_PREVIEW_INTRO = (
     "Näyttää julkaisudatan yhdessä frontend-buildin kanssa paikallisesti; tämä on täsmälleen se "
@@ -139,6 +144,7 @@ ROUTE_MAINTAINER = "Ylläpito"
 MAINTAINER_NAMES = {"municipal": "kunnan ylläpitämä", "non_municipal": "ei kunnan ylläpitämä"}
 MAINTAINER_UNKNOWN = "ei tietoa"
 MAINTAINER_SHORT = {"municipal": "kunta", "non_municipal": "ei kunnan"}
+REASON_COUNT = "{count} syytä"
 ROUTE_LIPAS_ID = "Lipas-tunnus"
 ROUTE_LIPAS_ID_HELP = "0 = ei kytkentää"
 ROUTE_GPX = "GPX-jälki"
@@ -167,6 +173,109 @@ ROUTES_TABLE_COLUMNS = {
 }
 SIDEBAR_CURRENT_ROUTE = "Reitti: {name} · {themes}"
 
+ITRS_SUMMARY = "ITRS ja vaativin kohta: {itrs} · vaativin kohta {hardest} — muokkaa alla"
+ITRS_SUMMARY_NONE = "ei arvioitu"
+HARDEST_SUMMARY_KM = "km {km}"
+HARDEST_SUMMARY_NONE = "ei valittu"
+
+# Images expander (2.1 dropzone, 5.3 media)
+IMAGES_HEADER = "Kuvat"
+IMAGES_UPLOAD = "Raahaa kuvat tähän"
+IMAGES_UPLOAD_HINT = "Alkuperäiset kuvat suoraan kamerasta, jotta EXIF-sijainnit säilyvät."
+IMAGE_AUTHOR = "Kuvaaja"
+IMAGE_LICENSE = "Lisenssi"
+IMAGE_LICENSE_DEFAULT = "CC BY 4.0"
+IMAGE_REMOVE = "poista"
+IMAGE_FILE_MISSING = "tiedosto puuttuu"
+IMAGES_NONE = "Reitillä ei ole vielä kuvia."
+IMAGES_NEW_HEADER = "Uudet kuvat"
+COVER_IMAGE = "Kansikuva"
+BUTTON_SAVE_IMAGES = "Tallenna kuvat"
+IMAGES_SAVED = "Kuvat tallennettu: {count} kuvaa"
+IMAGE_INFO_MISSING = "Kuvaaja ja lisenssi puuttuvat: {key}"
+
+# ITRS expander (2.4)
+ITRS_HEADER = "ITRS-arvio"
+ITRS_TECHNICAL = "Tekninen vaikeus"
+ITRS_ENDURANCE = "Kestävyys"
+ITRS_EXPOSURE = "Altistus"
+ITRS_WILDERNESS = "Erämaisuus"
+ITRS_ZERO_IS_NONE = "0 = ei arvoa"
+ITRS_LEVEL_NAMES = {
+    "green": "1 vihreä",
+    "blue": "2 sininen",
+    "red": "3 punainen",
+    "black": "4 musta",
+    "orange": "5 oranssi",
+}
+ITRS_LEVELS_CAPTION = "Tasot: " + " · ".join(ITRS_LEVEL_NAMES.values())
+ITRS_ASSESSED_BY = "Arvioija"
+ITRS_ASSESSED_ON = "Arvioitu"
+ITRS_SCALE_UNLOCKED = (
+    "Asteikkoa ei ole lukittu: altistus ja erämaisuus validoidaan vain positiivisina "
+    "kokonaislukuina, kunnes ITRS-oppaan tasot on tarkistettu."
+)
+BUTTON_SAVE_ITRS = "Tallenna ITRS-arvio"
+ITRS_SAVED = "ITRS-arvio tallennettu."
+
+# Hardest section expander (2.5)
+HARDEST_HEADER = "Vaativin kohta"
+HARDEST_MEDIA = "Kuva"
+HARDEST_KM = "Km"
+HARDEST_KM_FROM_EXIF = "Km laskettu kuvan EXIF-sijainnista projisoimalla. Voit korjata arvon."
+HARDEST_KM_NO_EXIF = "Kuvassa ei ole EXIF-sijaintia; anna km käsin."
+HARDEST_DESCRIPTION = "Kuvaus"
+HARDEST_NEEDS_IMAGES = "Lisää ensin kuva Kuvat-osiossa."
+BUTTON_SAVE_HARDEST = "Tallenna vaativin kohta"
+HARDEST_SAVED = "Vaativin kohta tallennettu."
+
+# Segment editor (2.6)
+SEGMENTS_HEADER = "Segmenttieditori"
+SEGMENTS_COVERAGE = "kattavuus {percent} % · {unknown_km} km ilman tietoa"
+SEGMENT_COLUMNS = {
+    "start_km": "alku (km)",
+    "end_km": "loppu (km)",
+    "surface": "pinta",
+    "traffic": "liikenne",
+    "itrs_technical": "tekninen",
+}
+SURFACE_NAMES = {
+    "asphalt": "asfaltti",
+    "paving": "kiveys",
+    "gravel": "sora",
+    "trail": "polku",
+    "boardwalk": "pitkospuut",
+    "snow": "lumi",
+}
+TRAFFIC_NAMES = {"separated": "erotettu", "quiet": "hiljainen", "busy": "vilkas"}
+SEGMENTS_PROBLEM = "Segmentit: {problem}"
+SEGMENTS_INCOMPLETE_ROW = "Rivillä {row} alku tai loppu puuttuu."
+SEGMENTS_MAP_CLICK_LATER = (
+    "Rajan asettaminen karttaa klikkaamalla tulee karttaesikatselun mukana (V2b)."
+)
+BUTTON_SAVE_SEGMENTS = "Tallenna segmentit"
+SEGMENTS_SAVED = "Segmentit tallennettu: {count} kpl"
+
+# Maintenance expander (2.7)
+MAINTENANCE_HEADER = "Ylläpito"
+LIPAS_NO_LINK = "– ei kytkentää"
+REASONS_HEADER = "Syyt · vähintään yksi"
+REASON_NAMES = {
+    "private_road_no_permission": "yksityistie, ei lupaa",
+    "unmarked": "ei reittimerkintöjä",
+    "unmaintained": "ei kunnossapitoa",
+    "everymans_rights_terrain": "maastoliikennelaki",
+    "seasonal": "kausiluonteinen",
+}
+MAINTENANCE_NOTE = "Tarkennus"
+MAINTENANCE_NO_REASON = (
+    "Validointi: ylläpito on non_municipal, mutta syytä ei ole valittu → virhe. Build pysähtyy, "
+    "koska merkintä ilman perustelua on harhaanjohtava."
+)
+BUTTON_SAVE_MAINTENANCE = "Tallenna ylläpito"
+MAINTENANCE_SAVED = "Ylläpito tallennettu."
+LIPAS_SUGGESTION_LATER = "Lipas-ehdotus jäljen perusteella tulee vaiheessa V6."
+
 LIPAS_HEADER = "Lipas"
 LIPAS_SNAPSHOT_AT = "Tilannekuva haettu {when}"
 LIPAS_NO_SNAPSHOT = "Ei tilannekuvaa"
@@ -175,7 +284,7 @@ LIPAS_FETCHING = "Haetaan Lipasista…"
 LIPAS_FETCHED = "Lipas haettu: {count} reittiä"
 LIPAS_FETCH_FAILED = "Lipas-haku epäonnistui"
 BUTTON_LIPAS_CREATE = "Luo puuttuvat reittikansiot"
-LIPAS_MATCHING_LATER = "Jäljen vertailu Lipas-reitteihin tulee vaiheessa V2."
+LIPAS_MATCHING_LATER = "Jäljen vertailu Lipas-reitteihin tulee vaiheessa V6."
 
 # Themes page
 THEMES_INTRO = (
@@ -192,7 +301,34 @@ THEME_COLOR_HIGHLIGHT = "Korostus"
 THEME_CONTRAST = "Kontrasti valkoista tekstiä vasten {ratio}:1"
 THEME_CONTRAST_LOW = "Kontrasti alle 4,5:1 – valkoinen teksti ei ole luettavaa päävärin päällä."
 THEME_DARK = "Tumma teema"
-THEME_PRESENTATION_LATER = "Esitys-osio (avainluvut, nauha, suodattimet) tulee vaiheessa V2."
+THEME_PRESENTATION_HEADER = "Esitys"
+THEME_KEY_FIGURES = "Avainluvut"
+THEME_BAND = "Nauha"
+THEME_HERO_IMAGE = "Nosta kuva"
+THEME_FILTERS = "Suodattimet"
+THEME_SERVICES_FIRST = "Palvelut ensin (pilkuilla eroteltuna)"
+THEME_BAND_TOO_MANY = "Nauhassa voi olla korkeuden lisäksi enintään {max} kaistaa."
+KEY_FIGURE_NAMES = {
+    "length": "pituus",
+    "ascent": "nousu",
+    "difficulty": "vaativuus",
+    "itrs_technical": "ITRS tekninen",
+    "itrs_endurance": "ITRS kestävyys",
+    "itrs_exposure": "ITRS altistus",
+    "itrs_wilderness": "ITRS erämaisuus",
+    "dominant_surface": "pääpinta",
+    "surface_shares": "pintaosuudet",
+    "separated_share": "erotettu osuus",
+    "winter_maintenance": "talvikunnossapito",
+    "longest_service_gap": "pisin palveluväli",
+}
+BAND_LANE_NAMES = {
+    "elevation": "korkeus",
+    "surface": "pinta",
+    "traffic": "liikenne",
+    "itrs_technical": "ITRS tekninen",
+}
+HERO_IMAGE_NAMES = {"cover_image": "kansikuva", "hardest_section": "vaativin kohta"}
 THEME_SAVED = "Teema tallennettu: {path}"
 
 PROJECT_HEADER = "Projektiasetukset"

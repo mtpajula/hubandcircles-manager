@@ -369,3 +369,24 @@ def test_lang_texts_walker_skips_non_language_dicts():
         ("name", {"fi": "x"}),
         ("items[0].label", {"fi": "y"}),
     ]
+
+
+# --- Pure segment rule (segment editor, ADMIN-UI-SPEC 2.6) ------------------------------------
+
+
+def test_segment_problems_lists_every_broken_rule():
+    from manager.models import Segment
+    from manager.validate.segments import segment_problems
+
+    good = [Segment(start_km=0, end_km=0.5), Segment(start_km=0.6, end_km=1.35)]
+    assert segment_problems(good, 1.3) == []
+    bad = [
+        Segment(start_km=0, end_km=0.8),
+        Segment(start_km=0.7, end_km=0.7),
+        Segment(start_km=0.7, end_km=1.4),
+    ]
+    problems = segment_problems(bad, 1.3)
+    assert [p.split(":")[0] for p in problems] == ["segments[1]", "segments[2]", "segments[2]"]
+    assert "not after start_km" in problems[0]
+    assert "before the previous segment ends at 0.8 km" in problems[1]
+    assert "0.7-1.4 km is outside 0-1.35 km" in problems[2]

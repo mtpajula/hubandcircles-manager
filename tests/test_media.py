@@ -103,6 +103,10 @@ def test_build_publishes_media_and_rewrites_cover(data, tmp_path):
 
     catalog = json.loads((dist / "catalog.json").read_text())
     assert catalog["routes"][0]["cover_image"] == route["cover_image"]
+    # The hardest section's small image is a ready path too, for hero_image: hardest_section.
+    hardest_400 = route["media"]["media/Kivikko 2.jpg"]["sizes"]["400"]
+    assert catalog["routes"][0]["hardest_image"] == f"routes/test-loop/{hardest_400}"
+    assert (dist / catalog["routes"][0]["hardest_image"]).is_file()
 
 
 def test_build_source_km_wins_over_exif(data, tmp_path):

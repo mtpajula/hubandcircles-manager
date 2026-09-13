@@ -11,13 +11,20 @@ from manager import store
 from manager.build import BuildError
 from manager.build.read import read_source_data
 from manager.color import contrast_ratio
-from manager.models import Colors, Feedback, ItrsScales, Project, Theme
+from manager.models import Colors, Feedback, ItrsScales, Presentation, Project, Theme
+from manager.models.identifiers import (
+    BAND_LANES,
+    FILTER_IDS,
+    HERO_IMAGES,
+    KEY_FIGURES,
+    MAX_BAND_LANES,
+)
 from manager.settings import data_dir, load_env
 from manager.ui import texts
+from manager.ui.widgets import lang_inputs, lang_text
 
 WHITE = "#FFFFFF"
 MIN_CONTRAST = 4.5
-LANGUAGES = ("fi", "en")
 
 load_env()
 st.title(texts.PAGE_THEMES)
@@ -35,21 +42,55 @@ except BuildError as e:
 st.caption(texts.THEMES_INTRO)
 
 
-def lang_text(values: dict[str, str]) -> dict[str, str]:
-    """Language object without empty strings (P11: missing text is left out, not written)."""
-    return {lang: text.strip() for lang, text in values.items() if text.strip()}
+def presentation_inputs(theme: Theme) -> dict | None:
+    """The Esitys block (section 6): lists restricted to the fixed identifiers of 5.7.
 
-
-def lang_inputs(label: str, current: dict[str, str] | None, key: str) -> dict[str, str]:
-    """One text input per language in a row; returns {lang: raw value}."""
-    columns = st.columns(len(LANGUAGES))
+    Returns the Presentation fields; the model (and its band limit) is built on save."""
+    k = theme.id
+    current = theme.presentation or Presentation()
+    st.markdown(f"**{texts.THEME_PRESENTATION_HEADER}**")
+    key_figures = st.multiselect(
+        texts.THEME_KEY_FIGURES,
+        KEY_FIGURES,
+        default=current.key_figures,
+        format_func=texts.KEY_FIGURE_NAMES.get,
+        key=f"key_figures_{k}",
+    )
+    band = st.multiselect(
+        texts.THEME_BAND,
+        BAND_LANES,
+        default=current.band,
+        format_func=texts.BAND_LANE_NAMES.get,
+        key=f"band_{k}",
+    )
+    hero_image = st.selectbox(
+        texts.THEME_HERO_IMAGE,
+        HERO_IMAGES,
+        index=HERO_IMAGES.index(current.hero_image),
+        format_func=texts.HERO_IMAGE_NAMES.get,
+        key=f"hero_image_{k}",
+    )
+    filters = st.multiselect(
+        texts.THEME_FILTERS,
+        FILTER_IDS,
+        default=current.filters,
+        format_func=texts.KEY_FIGURE_NAMES.get,
+        key=f"filters_{k}",
+    )
+    services_first = st.text_input(
+        texts.THEME_SERVICES_FIRST,
+        value=", ".join(current.service_categories_first),
+        key=f"services_first_{k}",
+    )
+    categories = [c.strip() for c in services_first.split(",") if c.strip()]
+    if not (key_figures or band or filters or categories or theme.presentation):
+        return None  # nothing chosen and nothing before: no block is written (P11)
     return {
-        lang: column.text_input(
-            f"{label} ({texts.LANGUAGE_NAMES[lang]})",
-            value=(current or {}).get(lang, ""),
-            key=f"{key}_{lang}",
-        )
-        for lang, column in zip(LANGUAGES, columns)
+        "key_figures": key_figures,
+        "band": band,
+        "hero_image": hero_image,
+        "filters": filters,
+        "service_categories_first": categories,
     }
 
 
@@ -78,8 +119,7 @@ for theme in sorted(data.themes, key=lambda t: t.order):
         if ratio < MIN_CONTRAST:
             st.warning(texts.THEME_CONTRAST_LOW)
         dark = st.checkbox(texts.THEME_DARK, value=theme.dark, key=f"dark_{k}")
-        # ponytail: presentation lists (6, ARKKITEHTUURI 5.7) when Theme gets `presentation` (V2).
-        st.caption(texts.THEME_PRESENTATION_LATER)
+        presentation = presentation_inputs(theme)
         if st.button(texts.BUTTON_SAVE, key=f"save_theme_{k}"):
             try:
                 updated = theme.model_copy(
@@ -89,10 +129,16 @@ for theme in sorted(data.themes, key=lambda t: t.order):
                         "order": int(order),
                         "colors": Colors(primary=primary, route=route, highlight=highlight),
                         "dark": dark,
+                        "presentation": Presentation(**presentation) if presentation else None,
                     }
                 )
                 path = store.save_theme(source, Theme.model_validate(updated.model_dump()))
-            except (store.StoreError, ValidationError) as e:
+            except ValidationError as e:
+                if any(error["loc"][:1] == ("band",) for error in e.errors()):
+                    st.error(texts.THEME_BAND_TOO_MANY.format(max=MAX_BAND_LANES))
+                else:
+                    st.error(texts.SAVE_FAILED.format(error=e))
+            except store.StoreError as e:
                 st.error(texts.SAVE_FAILED.format(error=e))
             else:
                 st.success(texts.THEME_SAVED.format(path=path))
