@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from manager.build.catalog import build_catalog
 from manager.build.errors import BuildError
 from manager.build.gpx import export_gpx
+from manager.build.media import publish_media
 from manager.build.overview import overview
 from manager.build.read import read_source_data
 from manager.build.routes import process_route, published_route
@@ -82,13 +83,15 @@ def build(data_dir: Path, dist_dir: Path) -> BuildReport:
     results = [(route, process_route(directory, route)) for directory, route in source.routes]
     published = []
     language = source.project.default_language
-    for route, result in results:
+    for (directory, _), (route, result) in zip(source.routes, results, strict=True):
+        out = tmp / "routes" / route.id
+        media = publish_media(directory, route, out)
         # A name without the default language is a validation error below; the id fills in.
         gpx = export_gpx(result.points, route.name.get(language, route.id))
-        route_json = published_route(route, result, gpx_bytes=len(gpx))
-        write_json(tmp / "routes" / route.id / "route.json", published_form(route_json))
-        write_json(tmp / "routes" / route.id / "track.geojson", result.track)
-        (tmp / "routes" / route.id / route_json.gpx).write_bytes(gpx)
+        route_json = published_route(route, result, gpx_bytes=len(gpx), media=media)
+        write_json(out / "route.json", published_form(route_json))
+        write_json(out / "track.geojson", result.track)
+        (out / route_json.gpx).write_bytes(gpx)
         published.append(route_json)
     write_json(tmp / "overview.geojson", overview(results))
     write_json(tmp / "catalog.json", published_form(build_catalog(source, published)))

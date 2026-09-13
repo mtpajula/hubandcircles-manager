@@ -13,12 +13,13 @@ import gpxpy.gpx
 
 from manager.build import write_json
 from manager.models import LangText, Project, Route, TextSection, Theme
-from manager.sources.lipas import slugify
+from manager.slug import slugify
 
 __all__ = [
     "StoreError",
     "delete_route",
     "description",
+    "media_key",
     "route_dir",
     "save_project",
     "save_route",
@@ -47,8 +48,22 @@ def _check_gpx(gpx: bytes) -> None:
         raise StoreError("GPX: track has fewer than 2 points")
 
 
-def save_route(data_dir: Path, route: Route, gpx: bytes | None = None) -> Path:
-    """Write routes/<id>/route.json and, when given, the track. Returns the route directory."""
+def media_key(filename: str) -> str:
+    """Key of an uploaded image in route.media: media/<slugified stem><lowercase extension>."""
+    name = Path(filename)
+    return f"media/{slugify(name.stem)}{name.suffix.lower()}"
+
+
+def save_route(
+    data_dir: Path,
+    route: Route,
+    gpx: bytes | None = None,
+    images: list[tuple[str, bytes]] | None = None,
+) -> Path:
+    """Write routes/<id>/route.json, the track and the images (media_key names) when given.
+
+    Returns the route directory.
+    """
     if not SLUG.match(route.id):
         raise StoreError(f"route id {route.id!r} is not a slug (a-z, 0-9, '-')")
     if gpx is not None:
@@ -59,6 +74,10 @@ def save_route(data_dir: Path, route: Route, gpx: bytes | None = None) -> Path:
     write_json(directory / "route.json", route.model_dump(mode="json", exclude_none=True))
     if gpx is not None:
         (directory / route.track).write_bytes(gpx)
+    for filename, data in images or []:
+        target = directory / media_key(filename)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
     return directory
 
 

@@ -102,3 +102,11 @@ def test_description_helpers_touch_only_the_first_text_section():
 
 def test_slugify_is_the_lipas_one():
     assert store.slugify("Ounasvaaran Ympäri!") == "ounasvaaran-ympari"
+
+
+def test_save_route_writes_images_under_media(data):
+    images = [("IMG 0001.JPG", b"\xff\xd8jpeg"), ("Kivikkoinen lasku.jpeg", b"\xff\xd8other")]
+    directory = store.save_route(data, _route(), GPX, images=images)
+    assert (directory / "media" / "img-0001.jpg").read_bytes() == b"\xff\xd8jpeg"
+    assert (directory / "media" / "kivikkoinen-lasku.jpeg").read_bytes() == b"\xff\xd8other"
+    assert store.media_key("IMG 0001.JPG") == "media/img-0001.jpg"

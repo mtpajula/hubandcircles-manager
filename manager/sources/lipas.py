@@ -4,8 +4,6 @@ fetch() is the only function that touches the network; the rest is pure and test
 """
 
 import json
-import re
-import unicodedata
 import urllib.parse
 import urllib.request
 from collections.abc import Iterable
@@ -17,6 +15,7 @@ import gpxpy.gpx
 from manager.build import write_json
 from manager.build.routes import to_deg, to_m
 from manager.models import Route, TextSection
+from manager.slug import MAX_ID_LENGTH, slugify  # noqa: F401  (re-exported for callers)
 
 # The only http:// source in the project: Lipas serves WFS over plain HTTP. No keys or
 # secrets are sent, and the result is public data checked by the editor before use (7.13).
@@ -43,7 +42,6 @@ PROPERTY_KEYS = {
 
 GRAVEL_SURFACE = "Sora"  # Lipas surface value meaning gravel
 TOURING_MIN_KM = 150
-MAX_ID_LENGTH = 60
 
 Point = tuple[float, float]
 
@@ -177,13 +175,6 @@ def read_snapshot(data_dir: Path) -> list[LipasRoute]:
         )
         for feature in collection["features"]
     ]
-
-
-def slugify(text: str) -> str:
-    """ASCII slug: accents stripped, non-alphanumerics collapsed to '-', at most 60 chars."""
-    ascii_text = unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode()
-    slug = re.sub(r"[^a-z0-9]+", "-", ascii_text.lower()).strip("-")
-    return slug[:MAX_ID_LENGTH].rstrip("-")
 
 
 def _themes(route: LipasRoute) -> list[str]:

@@ -178,6 +178,7 @@
       "type": "object"
     },
     "PublishedMedia": {
+      "description": "An image of the route (5.3): the WebP sizes and what the EXIF said, keyed by source path.",
       "properties": {
         "author": {
           "title": "Author",
@@ -216,6 +217,18 @@
           "default": {},
           "title": "Sizes",
           "type": "object"
+        },
+        "taken_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Taken At"
         }
       },
       "required": [
@@ -345,6 +358,7 @@
       "type": "object"
     }
   },
+  "description": "route.json (5.3). Media rule: `cover_image` is a ready path relative to the data root\n(`routes/<id>/media/cover-<hash>-400.webp`); everything else (`hardest_section.media`, gallery\n`media` entries) is a source key into `media`, where the sizes and the location are.",
   "properties": {
     "ascent_m": {
       "anyOf": [

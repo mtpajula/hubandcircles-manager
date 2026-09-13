@@ -9,6 +9,7 @@ dependencies = [
     "shapely",
     "pyproj",
     "streamlit>=1.50",
+    "pillow>=12.3.0",
 ]
 
 [dependency-groups]

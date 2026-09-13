@@ -40,12 +40,15 @@ class RouteSummary(BaseModel):
 
 
 class PublishedMedia(BaseModel):
+    """An image of the route (5.3): the WebP sizes and what the EXIF said, keyed by source path."""
+
     model_config = ConfigDict(extra="ignore")
 
     author: str
     license: str
-    sizes: dict[str, str] = {}
-    location: tuple[float, float] | None = None
+    sizes: dict[str, str] = {}  # width → path relative to the route directory ("media/...webp")
+    location: tuple[float, float] | None = None  # WGS84 (lon, lat) from the EXIF, else None
+    taken_at: str | None = None  # ISO date from the EXIF, else None
 
 
 class PublishedSegment(Segment):
@@ -55,6 +58,10 @@ class PublishedSegment(Segment):
 
 
 class PublishedRoute(RouteSummary):
+    """route.json (5.3). Media rule: `cover_image` is a ready path relative to the data root
+    (`routes/<id>/media/cover-<hash>-400.webp`); everything else (`hardest_section.media`, gallery
+    `media` entries) is a source key into `media`, where the sizes and the location are."""
+
     lipas_id: int | None = None
     track: str
     profile: list[tuple[float, float]]

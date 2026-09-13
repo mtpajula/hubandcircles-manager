@@ -26,6 +26,12 @@ def check_links(tmp_dir: Path) -> list[Finding]:
         source = f"catalog.json: route {route.get('id')}: cover_image"
         findings += _check(tmp_dir, route.get("cover_image"), source)
     for route_json in sorted(tmp_dir.glob("routes/*/route.json")):
-        source = f"{route_json.parent.name}/route.json: track"
-        findings += _check(route_json.parent, _read(route_json).get("track"), source)
+        route = _read(route_json)
+        source = f"{route_json.parent.name}/route.json"
+        findings += _check(route_json.parent, route.get("track"), f"{source}: track")
+        # cover_image is relative to the data root; media sizes to the route directory (5.3).
+        findings += _check(tmp_dir, route.get("cover_image"), f"{source}: cover_image")
+        for key, media in route.get("media", {}).items():
+            for size, path in media.get("sizes", {}).items():
+                findings += _check(route_json.parent, path, f"{source}: media {key!r} size {size}")
     return findings

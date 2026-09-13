@@ -83,7 +83,7 @@ class HardestSection(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     media: str  # key of route.media or a file under the route directory; checked in validate
-    km: float | None = None  # ponytail: from the image EXIF location in M4 (build/projection.py)
+    km: float | None = None  # when None, the build projects the image EXIF location (7.11)
     description: LangText | None = None
 
 
@@ -137,6 +137,18 @@ class Route(BaseModel):
     @property
     def normalised_fields(self) -> list[str]:
         return self._normalised_fields
+
+    def media_paths(self) -> set[str]:
+        """Every image path of the card: media keys, cover, hardest section and galleries."""
+        paths = set(self.media)
+        if self.cover_image:
+            paths.add(self.cover_image)
+        if self.hardest_section:
+            paths.add(self.hardest_section.media)
+        for section in self.sections:
+            if isinstance(section, GallerySection):
+                paths.update(section.media)
+        return paths
 
     @model_validator(mode="wrap")
     @classmethod

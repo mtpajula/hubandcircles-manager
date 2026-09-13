@@ -18,5 +18,23 @@ def km_along(track_coords_wgs84: Coordinates, point: tuple[float, float]) -> flo
 
     Both arguments are WGS84 (lon, lat). A point beyond either end projects to that end.
     """
-    line = transform(to_m, LineString(track_coords_wgs84))
-    return line.project(transform(to_m, Point(point))) / 1000
+    return km_along_lines([track_coords_wgs84], point)
+
+
+def km_along_lines(lines: list[Coordinates], point: tuple[float, float]) -> float:
+    """km_along for a track of one or more parts (MultiLineString).
+
+    The nearest part wins, and km continues from part to part without the gap between them,
+    like `properties.km` of track.geojson (7.11).
+    """
+    target = transform(to_m, Point(point))
+    start_km = 0.0
+    nearest: tuple[float, float] | None = None  # (distance m, km)
+    for coords in lines:
+        line = transform(to_m, LineString(coords))
+        distance = line.distance(target)
+        if nearest is None or distance < nearest[0]:
+            nearest = (distance, start_km + line.project(target) / 1000)
+        start_km += line.length / 1000
+    assert nearest is not None, "a track has at least one part"
+    return nearest[1]

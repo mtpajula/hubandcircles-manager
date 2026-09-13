@@ -59,6 +59,7 @@ CHECK_NAMES = {
     "presentation": "Esitystunnisteet",
     "segments": "Segmentit",
     "hardest_section": "Vaativin kohta",
+    "media": "Kuvien tiedot",
     "itrs_values": "ITRS-luvut",
     "maintenance_reasons": "Ylläpitosyyt",
     "translations": "Käännökset",

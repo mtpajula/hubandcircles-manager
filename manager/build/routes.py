@@ -11,9 +11,9 @@ from shapely.geometry import LineString
 from shapely.ops import transform
 
 from manager.build.errors import BuildError
-from manager.build.projection import to_m
+from manager.build.projection import km_along_lines, to_m
 from manager.build.segments import dominant, normalise, shares
-from manager.models import Bbox, PublishedRoute, Route
+from manager.models import Bbox, PublishedMedia, PublishedRoute, Route
 
 # Same as the example in chapter 7.3: metres in EPSG:3067, degrees in WGS84.
 to_deg = Transformer.from_crs(3067, 4326, always_xy=True).transform
@@ -139,11 +139,30 @@ def process_route(directory: Path, route: Route) -> RouteResult:
     )
 
 
-def published_route(route: Route, result: RouteResult, gpx_bytes: int) -> PublishedRoute:
+def published_route(
+    route: Route,
+    result: RouteResult,
+    gpx_bytes: int,
+    media: dict[str, PublishedMedia] | None = None,
+) -> PublishedRoute:
     """route.json: source card + computed fields (5.3, 7.11).
 
-    ponytail: no media (M4: WebP, EXIF, hardest_section.km) and no services (service gaps).
+    `media` is the output of build/media.py. cover_image becomes the 400 px path relative to the
+    data root; hardest_section.km is projected from the image location when the source has none.
+
+    ponytail: no services (service gaps).
     """
+    media = media or {}
+    cover = media.get(route.cover_image or "")
+    cover_image = f"routes/{route.id}/{cover.sizes['400']}" if cover else None
+    hardest = route.hardest_section
+    if hardest is not None and hardest.km is None:
+        image = media.get(hardest.media)
+        if image is not None and image.location is not None:
+            lines = geometry_lines(result.track["geometry"])
+            hardest = hardest.model_copy(
+                update={"km": round(km_along_lines(lines, image.location), 1)}
+            )
     segments = normalise(route.segments, result.length_km)
     surface_shares = shares(segments, result.length_km, "surface")
     traffic_shares = shares(segments, result.length_km, "traffic")
@@ -155,7 +174,7 @@ def published_route(route: Route, result: RouteResult, gpx_bytes: int) -> Publis
         length_km=result.length_km,
         ascent_m=result.ascent_m,
         bbox=result.bbox,
-        cover_image=None,  # ponytail: V1 media → cover-<hash>-400.webp
+        cover_image=cover_image,
         maintainer=route.maintainer,
         difficulty=route.difficulty,
         itrs=route.itrs,
@@ -165,7 +184,8 @@ def published_route(route: Route, result: RouteResult, gpx_bytes: int) -> Publis
         profile=result.profile,
         sections=route.sections,
         maintenance_url=route.maintenance_url,
-        hardest_section=route.hardest_section,
+        media=media,
+        hardest_section=hardest,
         segments=segments,
         surface_shares=surface_shares,
         traffic_shares=traffic_shares,

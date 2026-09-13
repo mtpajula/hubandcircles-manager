@@ -2,13 +2,14 @@
 
 from typing import TYPE_CHECKING
 
+from manager.models import PublishedRoute
 from manager.validate.finding import Finding
 
 if TYPE_CHECKING:
     from manager.build.read import SourceData
 
 
-def check_hardest_section(source: "SourceData") -> list[Finding]:
+def check_hardest_section(source: "SourceData", published: list[PublishedRoute]) -> list[Finding]:
     findings = []
     for directory, route in source.routes:
         section = route.hardest_section
@@ -21,4 +22,13 @@ def check_hardest_section(source: "SourceData") -> list[Finding]:
                 " media nor a file in the route directory",
             )
         )
+    # km stays None when the source has none and the image has no EXIF location (P11).
+    for route in published:
+        if route.hardest_section is not None and route.hardest_section.km is None:
+            findings.append(
+                Finding(
+                    "warning",
+                    f"route {route.id}: hardest_section.km missing and image has no location",
+                )
+            )
     return findings

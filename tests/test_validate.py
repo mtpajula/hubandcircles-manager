@@ -11,6 +11,8 @@ from manager.validate.links import check_links
 from manager.validate.schema import check_schema
 from manager.validate.translations import is_lang_text, lang_texts
 
+from .conftest import write_jpeg
+
 
 def _edit(path: Path, change) -> None:
     data = json.loads(path.read_text())
@@ -187,17 +189,20 @@ def test_segments_end_before_start_is_error(data, tmp_path):
 # --- Hardest section -------------------------------------------------------------------------
 
 
-def test_hardest_section_media_key_or_file_pass(data, tmp_path):
+def test_hardest_section_media_key_pass_file_without_info_fails(data, tmp_path):
+    write_jpeg(data / "routes" / "test-loop" / "media" / "a.jpg")
     _edit(
         _route(data),
         lambda d: d.update(
-            hardest_section={"media": "media/a.jpg"},
+            hardest_section={"media": "media/a.jpg", "km": 0.5},
             media={"media/a.jpg": {"author": "x", "license": "CC0"}},
         ),
     )
     build(data, tmp_path / "dist")
-    _edit(_route(data), lambda d: d.update(hardest_section={"media": "track.gpx"}, media={}))
-    build(data, tmp_path / "dist")
+    # A file in the route directory passes this check but needs author and license (media check).
+    _edit(_route(data), lambda d: d.update(hardest_section={"media": "media/a.jpg"}, media={}))
+    with pytest.raises(BuildError, match="media info missing for 'media/a.jpg'"):
+        build(data, tmp_path / "dist")
 
 
 def test_hardest_section_unknown_media_is_error(data, tmp_path):

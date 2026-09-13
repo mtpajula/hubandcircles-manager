@@ -12,6 +12,7 @@ from manager.validate.itrs_missing import check_itrs_missing
 from manager.validate.itrs_values import check_itrs_values
 from manager.validate.links import check_links
 from manager.validate.maintenance_reasons import check_maintenance_reasons
+from manager.validate.media import check_media
 from manager.validate.normalisation import check_normalisation
 from manager.validate.presentation import check_presentation
 from manager.validate.references import check_references
@@ -38,6 +39,7 @@ CHECKS = (
     "presentation",
     "segments",
     "hardest_section",
+    "media",
     "itrs_values",
     "maintenance_reasons",
     "translations",
@@ -60,7 +62,8 @@ def check_all(
         "references": check_references(source),
         "presentation": check_presentation(source),
         "segments": check_segments(source, published),
-        "hardest_section": check_hardest_section(source),
+        "hardest_section": check_hardest_section(source, published),
+        "media": check_media(source),
         "itrs_values": check_itrs_values(source),
         "maintenance_reasons": check_maintenance_reasons(source),
         "translations": check_translations(source),

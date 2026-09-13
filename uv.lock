@@ -275,6 +275,7 @@ version = "0.0.1"
 source = { editable = "." }
 dependencies = [
     { name = "gpxpy" },
+    { name = "pillow" },
     { name = "pydantic" },
     { name = "pyproj" },
     { name = "shapely" },
@@ -290,6 +291,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "gpxpy" },
+    { name = "pillow", specifier = ">=12.3.0" },
     { name = "pydantic", specifier = ">=2" },
     { name = "pyproj" },
     { name = "shapely" },
