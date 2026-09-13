@@ -32,9 +32,22 @@ def test_start_and_stop(frontend, dist, tmp_path):
     port = _free_port()
     process = preview.start_background(FIXTURE, dist, frontend, port, work_dir=tmp_path)
     try:
-        assert _get(f"http://127.0.0.1:{port}/") == 200
+        assert preview.wait_ready(port, process)
         assert _get(f"http://127.0.0.1:{port}/data/catalog.json") == 200
     finally:
         preview.stop(process)
     assert process.poll() is not None
     assert (tmp_path / "bundle" / "index.html").is_file()
+    assert "preview" in preview.log_tail()
+
+
+def test_wait_ready_reports_a_failed_start(dist, tmp_path):
+    from .conftest import FIXTURE
+
+    port = _free_port()
+    process = preview.start_background(FIXTURE, dist, tmp_path / "missing", port, work_dir=tmp_path)
+    try:
+        assert not preview.wait_ready(port, process, timeout_s=10)
+    finally:
+        preview.stop(process)
+    assert preview.log_tail()

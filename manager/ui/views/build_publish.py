@@ -67,13 +67,19 @@ with preview_column:
         st.warning(texts.FRONTEND_MISSING.format(path=frontend))
     process = st.session_state.get("preview_process")
     if process is not None and process.poll() is not None:
-        process = st.session_state.pop("preview_process")  # exited on its own
+        st.session_state.pop("preview_process")  # exited on its own
+        process = None
+        st.error(texts.PREVIEW_FAILED)
+        st.code(preview.log_tail())
     if process is None:
         if st.button(texts.BUTTON_PREVIEW, key="preview_start", disabled=not frontend.is_dir()):
-            st.session_state["preview_process"] = preview.start_background(
-                source, dist, frontend, PREVIEW_PORT
-            )
-            st.rerun()
+            started = preview.start_background(source, dist, frontend, PREVIEW_PORT)
+            if preview.wait_ready(PREVIEW_PORT, started):
+                st.session_state["preview_process"] = started
+                st.rerun()
+            preview.stop(started)
+            st.error(texts.PREVIEW_FAILED)
+            st.code(preview.log_tail())
     else:
         st.success(texts.PREVIEW_RUNNING.format(url=PREVIEW_URL))
         if st.button(texts.BUTTON_PREVIEW_STOP, key="preview_stop"):

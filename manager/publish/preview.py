@@ -2,12 +2,18 @@
 
 import subprocess
 import sys
+import time
+import urllib.error
+import urllib.request
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import ClassVar
 
 from manager.settings import ROOT
+
+LOG_FILE = ROOT / ".preview.log"  # stdout+stderr of the background preview, for the UI
+WORK_DIR = ROOT / ".preview"  # separate from publish's work dir so the two never clobber each other
 
 
 class _Handler(SimpleHTTPRequestHandler):
@@ -39,15 +45,41 @@ def start_background(
     dist_dir: Path,
     frontend: Path,
     port: int = 8765,
-    work_dir: Path = ROOT,
+    work_dir: Path = WORK_DIR,
 ) -> subprocess.Popen:
-    """Run `python -m manager preview` as a child process; the caller keeps the handle."""
+    """Run `python -m manager preview` as a child process; the caller keeps the handle.
+
+    Output goes to LOG_FILE so a failure (missing frontend, port in use) can be shown."""
     command = [
         sys.executable, "-m", "manager", "preview",
         "--data", str(data_dir), "--dist", str(dist_dir), "--frontend", str(frontend),
         "--port", str(port), "--work-dir", str(work_dir),
     ]  # fmt: skip
-    return subprocess.Popen(command, cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    log = LOG_FILE.open("w", encoding="utf-8")
+    log.write(" ".join(command) + "\n")
+    log.flush()
+    return subprocess.Popen(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
+
+
+def wait_ready(port: int, process: subprocess.Popen, timeout_s: float = 10) -> bool:
+    """True when the server answers on 127.0.0.1:port; False if it exits or the timeout passes."""
+    deadline = time.monotonic() + timeout_s
+    while time.monotonic() < deadline:
+        if process.poll() is not None:
+            return False
+        try:
+            with urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=1):
+                return True
+        except (urllib.error.URLError, ConnectionError, TimeoutError):
+            time.sleep(0.2)
+    return False
+
+
+def log_tail(lines: int = 15) -> str:
+    """Last lines of the preview log, empty if there is none."""
+    if not LOG_FILE.is_file():
+        return ""
+    return "\n".join(LOG_FILE.read_text(encoding="utf-8").splitlines()[-lines:])
 
 
 def stop(process: subprocess.Popen) -> None:

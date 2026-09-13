@@ -10,3 +10,5 @@ bundle/
 .ruff_cache/
 .DS_Store
 .state.json
+.preview/
+.preview.log

@@ -41,10 +41,12 @@ def _git(target: Target, cwd: Path, *args: str) -> None:
     except FileNotFoundError as e:
         raise PublishError("git not found") from e
     except subprocess.CalledProcessError as e:
-        stderr = e.stderr.strip()
+        detail = (
+            f"exit {e.returncode}; {shutil.which('git')}; {e.stderr.strip()} {e.stdout.strip()}"
+        )
         if token:
-            stderr = stderr.replace(token, "***")
-        raise PublishError(f"target {target.id}: git {args[0]} failed: {stderr}") from e
+            detail = detail.replace(token, "***")
+        raise PublishError(f"target {target.id}: git {args[0]} failed: {detail.strip()}") from e
 
 
 def publish(bundle: Bundle, target: Target) -> str:
