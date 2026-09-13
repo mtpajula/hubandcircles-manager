@@ -6,6 +6,9 @@ from pathlib import Path
 import pytest
 from streamlit.testing.v1 import AppTest
 
+from manager.ui import texts
+from manager.validate import CHECKS
+
 UI = Path(__file__).parent.parent / "manager" / "ui"
 PAGES = sorted(p.name for p in (UI / "views").glob("*.py") if p.name != "__init__.py")
 
@@ -56,12 +59,9 @@ def test_build_button_builds_fixture(build_page, tmp_path):
     assert at.metric[0].value == "1"
     assert (tmp_path / "dist" / "catalog.json").is_file()
     assert (tmp_path / ".state.json").is_file()
-    assert [m.value for m in at.markdown if m.value.startswith(("\u2713", "!"))] == [
-        "\u2713 Skeema",
-        "\u2713 Linkit",
-        "\u2713 Viittaukset",
-        "\u2713 K\u00e4\u00e4nn\u00f6kset",
-        "\u2713 Avainvuodot",
+    # Every check of table 7.2 that exists, in its order (texts.CHECK_NAMES follows CHECKS).
+    assert [m.value for m in at.markdown if m.value.startswith(("\u2713", "!", "i "))] == [
+        f"\u2713 {texts.CHECK_NAMES[check]}" for check in CHECKS
     ]
 
 

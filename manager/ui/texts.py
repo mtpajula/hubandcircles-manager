@@ -53,13 +53,24 @@ METRIC_WARNINGS = "Varoituksia"
 CHECKS_HEADER = "Tarkistukset"
 CHECK_NAMES = {
     "schema": "Skeema",
+    "enums": "Enum-arvot",
     "links": "Linkit",
     "references": "Viittaukset",
+    "presentation": "Esitystunnisteet",
+    "segments": "Segmentit",
+    "hardest_section": "Vaativin kohta",
+    "itrs_values": "ITRS-luvut",
+    "maintenance_reasons": "Ylläpitosyyt",
     "translations": "Käännökset",
+    "itrs_missing": "ITRS puuttuu",
+    "segment_coverage": "Segmenttikattavuus",
+    "normalisation": "Normalisointi",
     "secrets": "Avainvuodot",
+    "theme_contrast": "Teemavärien kontrasti",
 }
 CHECK_PASSED = "✓ {name}"
 CHECK_WARNING = "! {name} · {count} varoitusta"
+CHECK_INFO = "i {name} · {count} tietoa"
 CHECK_SHOW = "Näytä"
 
 STEP_PREVIEW_HEADER = "2 · Esikatselu"

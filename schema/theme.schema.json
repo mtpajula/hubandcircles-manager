@@ -26,6 +26,84 @@
       ],
       "title": "Colors",
       "type": "object"
+    },
+    "Presentation": {
+      "additionalProperties": false,
+      "description": "Which route facts come first in this theme (5.2). Lists hold 5.7 identifiers only,\nin display order; the frontend falls back to length, ascent, elevation and cover image.",
+      "properties": {
+        "band": {
+          "default": [],
+          "items": {
+            "enum": [
+              "elevation",
+              "surface",
+              "traffic",
+              "itrs_technical"
+            ],
+            "type": "string"
+          },
+          "title": "Band",
+          "type": "array"
+        },
+        "filters": {
+          "default": [],
+          "items": {
+            "enum": [
+              "length",
+              "ascent",
+              "difficulty",
+              "itrs_technical",
+              "dominant_surface",
+              "separated_share",
+              "winter_maintenance"
+            ],
+            "type": "string"
+          },
+          "title": "Filters",
+          "type": "array"
+        },
+        "hero_image": {
+          "default": "cover_image",
+          "enum": [
+            "cover_image",
+            "hardest_section"
+          ],
+          "title": "Hero Image",
+          "type": "string"
+        },
+        "key_figures": {
+          "default": [],
+          "items": {
+            "enum": [
+              "length",
+              "ascent",
+              "difficulty",
+              "itrs_technical",
+              "itrs_endurance",
+              "itrs_exposure",
+              "itrs_wilderness",
+              "dominant_surface",
+              "surface_shares",
+              "separated_share",
+              "winter_maintenance",
+              "longest_service_gap"
+            ],
+            "type": "string"
+          },
+          "title": "Key Figures",
+          "type": "array"
+        },
+        "service_categories_first": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Service Categories First",
+          "type": "array"
+        }
+      },
+      "title": "Presentation",
+      "type": "object"
     }
   },
   "additionalProperties": false,
@@ -85,6 +163,17 @@
     "order": {
       "title": "Order",
       "type": "integer"
+    },
+    "presentation": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Presentation"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "tagline": {
       "anyOf": [

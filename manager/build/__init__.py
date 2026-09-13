@@ -12,7 +12,7 @@ from manager.build.errors import BuildError
 from manager.build.overview import overview
 from manager.build.read import read_source_data
 from manager.build.routes import process_route, published_route
-from manager.validate import CHECKS, check_all
+from manager.validate import CHECKS, Finding, check_all
 
 __all__ = ["BuildError", "BuildReport", "build", "is_stale"]
 
@@ -22,7 +22,14 @@ class BuildReport:
     route_count: int
     first_visit_bytes: int
     warnings: list[str] = field(default_factory=list)
-    warnings_by_check: dict[str, list[str]] = field(default_factory=dict)  # every CHECKS key
+    # Every CHECKS key; warnings and infos only, since an error stops the build.
+    findings_by_check: dict[str, list[Finding]] = field(default_factory=dict)
+
+    @property
+    def infos(self) -> list[str]:
+        return [
+            f.message for fs in self.findings_by_check.values() for f in fs if f.level == "info"
+        ]
 
     def text(self) -> str:
         lines = [
@@ -30,6 +37,8 @@ class BuildReport:
             f"First-visit size: {self.first_visit_bytes / 1024:.1f} kB",
             f"Warnings: {len(self.warnings)}",
             *(f"  - {w}" for w in self.warnings),
+            f"Info: {len(self.infos)}",
+            *(f"  - {i}" for i in self.infos),
         ]
         return "\n".join(lines)
 
@@ -79,7 +88,7 @@ def build(data_dir: Path, dist_dir: Path) -> BuildReport:
     write_json(tmp / "overview.geojson", overview(results))
     write_json(tmp / "catalog.json", published_form(build_catalog(source, published)))
 
-    findings = check_all(data_dir, tmp, source)
+    findings = check_all(data_dir, tmp, source, published)
     errors = [x.message for x in findings if x.level == "error"]
     if errors:
         raise BuildError("\n".join(f"- {e}" for e in errors))
@@ -87,12 +96,11 @@ def build(data_dir: Path, dist_dir: Path) -> BuildReport:
     # ponytail: V0 first visit = catalog + overview; V1–V3 add images and basemap tiles.
     first_visit = sum((tmp / n).stat().st_size for n in ("catalog.json", "overview.geojson"))
     _swap(tmp, dist_dir)
-    warnings = [x for x in findings if x.level == "warning"]
     return BuildReport(
         route_count=len(published),
         first_visit_bytes=first_visit,
-        warnings=[x.message for x in warnings],
-        warnings_by_check={c: [x.message for x in warnings if x.check == c] for c in CHECKS},
+        warnings=[x.message for x in findings if x.level == "warning"],
+        findings_by_check={c: [x for x in findings if x.check == c] for c in CHECKS},
     )
 
 

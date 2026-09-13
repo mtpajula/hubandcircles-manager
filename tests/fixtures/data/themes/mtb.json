@@ -15,5 +15,27 @@
     "highlight": "#E8A33D"
   },
   "dark": false,
-  "default_layers": []
+  "default_layers": [],
+  "presentation": {
+    "key_figures": [
+      "itrs_technical",
+      "itrs_endurance",
+      "length",
+      "ascent"
+    ],
+    "band": [
+      "elevation",
+      "itrs_technical",
+      "surface"
+    ],
+    "hero_image": "hardest_section",
+    "filters": [
+      "itrs_technical",
+      "length"
+    ],
+    "service_categories_first": [
+      "water",
+      "lean_to"
+    ]
+  }
 }

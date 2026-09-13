@@ -109,13 +109,11 @@ with form_column:
             format_func=texts.SEASON_NAMES.get,
             key=f"seasons{k}",
         )
-        difficulties = list(DIFFICULTIES)
-        if route and route.difficulty not in difficulties:
-            difficulties.append(route.difficulty)  # legacy free string, shown as is (V1)
+        # Route.difficulty is a 5.7 value or None: legacy values are normalised on read.
         difficulty = st.selectbox(
             texts.ROUTE_DIFFICULTY,
-            difficulties,
-            index=difficulties.index(route.difficulty) if route else 0,
+            DIFFICULTIES,
+            index=DIFFICULTIES.index(route.difficulty) if route else 0,
             format_func=lambda v: texts.DIFFICULTY_NAMES.get(v, v or texts.NONE_OPTION),
             key=f"difficulty{k}",
         )

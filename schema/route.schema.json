@@ -38,6 +38,145 @@
       "title": "GallerySection",
       "type": "object"
     },
+    "HardestSection": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "minProperties": 1,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "km": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Km"
+        },
+        "media": {
+          "title": "Media",
+          "type": "string"
+        }
+      },
+      "required": [
+        "media"
+      ],
+      "title": "HardestSection",
+      "type": "object"
+    },
+    "Itrs": {
+      "additionalProperties": false,
+      "description": "ITRS assessment of the whole route (5.3). Every sub-field is optional (P11).",
+      "properties": {
+        "assessed_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assessed By"
+        },
+        "assessed_on": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assessed On"
+        },
+        "endurance": {
+          "anyOf": [
+            {
+              "enum": [
+                "green",
+                "blue",
+                "red",
+                "black",
+                "orange"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Endurance"
+        },
+        "exposure": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exposure"
+        },
+        "technical": {
+          "anyOf": [
+            {
+              "enum": [
+                "green",
+                "blue",
+                "red",
+                "black",
+                "orange"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technical"
+        },
+        "wilderness": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Wilderness"
+        }
+      },
+      "title": "Itrs",
+      "type": "object"
+    },
     "MediaInfo": {
       "additionalProperties": false,
       "properties": {
@@ -55,6 +194,82 @@
         "license"
       ],
       "title": "MediaInfo",
+      "type": "object"
+    },
+    "Segment": {
+      "additionalProperties": false,
+      "description": "Part of the route in km (5.3). A missing attribute is unknown for that part.",
+      "properties": {
+        "end_km": {
+          "title": "End Km",
+          "type": "number"
+        },
+        "itrs_technical": {
+          "anyOf": [
+            {
+              "enum": [
+                "green",
+                "blue",
+                "red",
+                "black",
+                "orange"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Itrs Technical"
+        },
+        "start_km": {
+          "title": "Start Km",
+          "type": "number"
+        },
+        "surface": {
+          "anyOf": [
+            {
+              "enum": [
+                "asphalt",
+                "paving",
+                "gravel",
+                "trail",
+                "boardwalk",
+                "snow"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Surface"
+        },
+        "traffic": {
+          "anyOf": [
+            {
+              "enum": [
+                "separated",
+                "quiet",
+                "busy"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Traffic"
+        }
+      },
+      "required": [
+        "start_km",
+        "end_km"
+      ],
+      "title": "Segment",
       "type": "object"
     },
     "TextSection": {
@@ -119,6 +334,11 @@
     "difficulty": {
       "anyOf": [
         {
+          "enum": [
+            "easy",
+            "moderate",
+            "demanding"
+          ],
           "type": "string"
         },
         {
@@ -128,9 +348,31 @@
       "default": null,
       "title": "Difficulty"
     },
+    "hardest_section": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/HardestSection"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "id": {
       "title": "Id",
       "type": "string"
+    },
+    "itrs": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Itrs"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     },
     "lipas_id": {
       "anyOf": [
@@ -160,6 +402,34 @@
       "default": null,
       "title": "Maintainer"
     },
+    "maintenance_note": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "minProperties": 1,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Maintenance Note"
+    },
+    "maintenance_url": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Maintenance Url"
+    },
     "media": {
       "additionalProperties": {
         "$ref": "#/$defs/MediaInfo"
@@ -176,8 +446,29 @@
       "title": "Name",
       "type": "object"
     },
+    "non_municipal_reasons": {
+      "default": [],
+      "items": {
+        "enum": [
+          "private_road_no_permission",
+          "unmarked",
+          "unmaintained",
+          "everymans_rights_terrain",
+          "seasonal"
+        ],
+        "type": "string"
+      },
+      "title": "Non Municipal Reasons",
+      "type": "array"
+    },
     "seasons": {
       "items": {
+        "enum": [
+          "spring",
+          "summer",
+          "autumn",
+          "winter"
+        ],
         "type": "string"
       },
       "title": "Seasons",
@@ -213,6 +504,14 @@
       "title": "Sections",
       "type": "array"
     },
+    "segments": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Segment"
+      },
+      "title": "Segments",
+      "type": "array"
+    },
     "themes": {
       "items": {
         "type": "string"
@@ -224,6 +523,23 @@
       "default": "track.gpx",
       "title": "Track",
       "type": "string"
+    },
+    "winter_maintenance": {
+      "anyOf": [
+        {
+          "enum": [
+            "plowed",
+            "groomed",
+            "none"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Winter Maintenance"
     }
   },
   "required": [

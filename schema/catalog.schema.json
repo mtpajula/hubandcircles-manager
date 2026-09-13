@@ -129,7 +129,183 @@
       "title": "Feedback",
       "type": "object"
     },
+    "Itrs": {
+      "additionalProperties": false,
+      "description": "ITRS assessment of the whole route (5.3). Every sub-field is optional (P11).",
+      "properties": {
+        "assessed_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assessed By"
+        },
+        "assessed_on": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assessed On"
+        },
+        "endurance": {
+          "anyOf": [
+            {
+              "enum": [
+                "green",
+                "blue",
+                "red",
+                "black",
+                "orange"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Endurance"
+        },
+        "exposure": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exposure"
+        },
+        "technical": {
+          "anyOf": [
+            {
+              "enum": [
+                "green",
+                "blue",
+                "red",
+                "black",
+                "orange"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technical"
+        },
+        "wilderness": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Wilderness"
+        }
+      },
+      "title": "Itrs",
+      "type": "object"
+    },
+    "Presentation": {
+      "additionalProperties": false,
+      "description": "Which route facts come first in this theme (5.2). Lists hold 5.7 identifiers only,\nin display order; the frontend falls back to length, ascent, elevation and cover image.",
+      "properties": {
+        "band": {
+          "default": [],
+          "items": {
+            "enum": [
+              "elevation",
+              "surface",
+              "traffic",
+              "itrs_technical"
+            ],
+            "type": "string"
+          },
+          "title": "Band",
+          "type": "array"
+        },
+        "filters": {
+          "default": [],
+          "items": {
+            "enum": [
+              "length",
+              "ascent",
+              "difficulty",
+              "itrs_technical",
+              "dominant_surface",
+              "separated_share",
+              "winter_maintenance"
+            ],
+            "type": "string"
+          },
+          "title": "Filters",
+          "type": "array"
+        },
+        "hero_image": {
+          "default": "cover_image",
+          "enum": [
+            "cover_image",
+            "hardest_section"
+          ],
+          "title": "Hero Image",
+          "type": "string"
+        },
+        "key_figures": {
+          "default": [],
+          "items": {
+            "enum": [
+              "length",
+              "ascent",
+              "difficulty",
+              "itrs_technical",
+              "itrs_endurance",
+              "itrs_exposure",
+              "itrs_wilderness",
+              "dominant_surface",
+              "surface_shares",
+              "separated_share",
+              "winter_maintenance",
+              "longest_service_gap"
+            ],
+            "type": "string"
+          },
+          "title": "Key Figures",
+          "type": "array"
+        },
+        "service_categories_first": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Service Categories First",
+          "type": "array"
+        }
+      },
+      "title": "Presentation",
+      "type": "object"
+    },
     "RouteSummary": {
+      "description": "The route as listed in catalog.json: what the list card and the filters need (5.6).",
       "properties": {
         "ascent_m": {
           "anyOf": [
@@ -175,9 +351,49 @@
           "default": null,
           "title": "Cover Image"
         },
+        "difficulty": {
+          "anyOf": [
+            {
+              "enum": [
+                "easy",
+                "moderate",
+                "demanding"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Difficulty"
+        },
+        "dominant_surface": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dominant Surface"
+        },
         "id": {
           "title": "Id",
           "type": "string"
+        },
+        "itrs": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Itrs"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "length_km": {
           "title": "Length Km",
@@ -214,12 +430,56 @@
           "title": "Seasons",
           "type": "array"
         },
+        "separated_share": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Separated Share"
+        },
+        "surface_shares": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "number"
+              },
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Surface Shares"
+        },
         "themes": {
           "items": {
             "type": "string"
           },
           "title": "Themes",
           "type": "array"
+        },
+        "winter_maintenance": {
+          "anyOf": [
+            {
+              "enum": [
+                "plowed",
+                "groomed",
+                "none"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Winter Maintenance"
         }
       },
       "required": [
@@ -291,6 +551,17 @@
         "order": {
           "title": "Order",
           "type": "integer"
+        },
+        "presentation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Presentation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "tagline": {
           "anyOf": [

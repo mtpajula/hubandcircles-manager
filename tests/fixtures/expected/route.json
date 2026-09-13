@@ -19,6 +19,9 @@
     66.5025
   ],
   "difficulty": "easy",
+  "itrs": {
+    "endurance": "blue"
+  },
   "track": "track.geojson",
   "profile": [
     [
@@ -72,5 +75,14 @@
     }
   ],
   "nearby_services": [],
-  "media": {}
+  "media": {},
+  "segments": [
+    {
+      "start_km": 0.0,
+      "end_km": 1.3,
+      "surface": "gravel",
+      "traffic": "quiet"
+    }
+  ],
+  "non_municipal_reasons": []
 }

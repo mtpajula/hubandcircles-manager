@@ -9,8 +9,8 @@ exactly as in the architecture (English, P10).
 | File | What |
 |---|---|
 | `project.json` | Project settings (5.1). No `feedback`; `itrs_scales` both `null`. |
-| `themes/*.json` | The five default themes of chapter 5.8 (`winter`, `mtb`, `gravel`, `road`, `touring`) with `name`, `tagline`, `order` 1–5, `colors` and `dark` (true only for `winter`). No `basemap`, `default_layers` empty. |
-| `routes/test-loop/route.json` | One route card (5.3). One `text` section, no cover image, no media. |
+| `themes/*.json` | The five default themes of chapter 5.8 (`winter`, `mtb`, `gravel`, `road`, `touring`) with `name`, `tagline`, `order` 1–5, `colors`, `dark` (true only for `winter`) and the 5.8 `presentation` blocks. No `basemap`, `default_layers` empty. Gravel `primary`/`route` is `#946013` instead of the 5.8 `#9A6414`: the latter is 4.43:1 against snow `#F4F1EC` and fails the theme contrast check. |
+| `routes/test-loop/route.json` | One route card (5.3). One `text` section, `itrs.endurance` (gravel key figure) and one `surface`+`traffic` segment covering the whole route (gravel band), no cover image, no media. |
 | `routes/test-loop/track.gpx` | GPX 1.1, one `trk`/`trkseg`, 10 `trkpt` points with `ele`, no timestamps. |
 | `services/manual.geojson` | Empty `FeatureCollection`. The layout is in the architecture; V2 needs it. |
 
@@ -47,4 +47,6 @@ first (1) is not counted, because the GPX has no closing point.
 - `catalog.json`: five themes ordered by `order`, one route (`test-loop`), `default_theme: "gravel"`, `languages: ["fi","en"]`, `layers: []`, no `services` or `coverage`.
 - The route's `themes: ["gravel"]` points to an existing theme → no reference error.
 - Every `name`, `tagline` and `content` has both `fi` and `en` → no translation warnings.
-- Theme colour `#9A6414` against white: contrast ratio ≈ 4.99:1 (WCAG formula) → passes the 4.5:1 limit narrowly; if a contrast check uses a different formula or limit, check this first.
+- Theme colour `#946013` against white ≈ 5.33:1 and against snow `#F4F1EC` ≈ 4.73:1 → passes the 4.5:1 limit; the 5.8 gravel `#9A6414` is 4.99:1 / 4.43:1 and fails on snow.
+- The route's `segments` end at 1.3 km, the published `length_km`; the raw length is 1.2775 km, within the 0.05 km tolerance.
+- No `itrs_missing` or `segment_coverage` warnings: the route has `itrs.endurance` and full surface coverage for the gravel theme.

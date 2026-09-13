@@ -1,0 +1,70 @@
+"""Fixed identifiers (chapter 5.7). Adding a value is a tech-lead decision, not a data change.
+
+Each Literal is the type used in the models; the matching tuple is for UI option lists and
+checks. `unknown` (surface, traffic) and `mixed` (dominant surface) are derived in the build
+and never appear in source data.
+"""
+
+from typing import Literal, get_args
+
+KeyFigure = Literal[
+    "length",
+    "ascent",
+    "difficulty",
+    "itrs_technical",
+    "itrs_endurance",
+    "itrs_exposure",
+    "itrs_wilderness",
+    "dominant_surface",
+    "surface_shares",
+    "separated_share",
+    "winter_maintenance",
+    "longest_service_gap",
+]
+BandLane = Literal["elevation", "surface", "traffic", "itrs_technical"]
+HeroImage = Literal["cover_image", "hardest_section"]
+FilterId = Literal[
+    "length",
+    "ascent",
+    "difficulty",
+    "itrs_technical",
+    "dominant_surface",
+    "separated_share",
+    "winter_maintenance",
+]
+ItrsLevel = Literal["green", "blue", "red", "black", "orange"]
+Surface = Literal["asphalt", "paving", "gravel", "trail", "boardwalk", "snow"]
+Traffic = Literal["separated", "quiet", "busy"]
+WinterMaintenance = Literal["plowed", "groomed", "none"]
+Difficulty = Literal["easy", "moderate", "demanding"]
+Season = Literal["spring", "summer", "autumn", "winter"]
+# Being in the municipal register (Lipas) is the definition of "municipal" (5.3, AP24).
+Maintainer = Literal["municipal", "non_municipal"]
+NonMunicipalReason = Literal[
+    "private_road_no_permission",
+    "unmarked",
+    "unmaintained",
+    "everymans_rights_terrain",
+    "seasonal",
+]
+SectionType = Literal["text", "gallery", "video", "elevation_profile"]
+
+KEY_FIGURES: tuple[str, ...] = get_args(KeyFigure)
+BAND_LANES: tuple[str, ...] = get_args(BandLane)
+HERO_IMAGES: tuple[str, ...] = get_args(HeroImage)
+FILTER_IDS: tuple[str, ...] = get_args(FilterId)
+ITRS_LEVELS: tuple[str, ...] = get_args(ItrsLevel)
+SURFACES: tuple[str, ...] = get_args(Surface)
+TRAFFICS: tuple[str, ...] = get_args(Traffic)
+WINTER_MAINTENANCES: tuple[str, ...] = get_args(WinterMaintenance)
+DIFFICULTIES: tuple[str, ...] = get_args(Difficulty)
+SEASONS: tuple[str, ...] = get_args(Season)
+MAINTAINERS: tuple[str, ...] = get_args(Maintainer)
+NON_MUNICIPAL_REASONS: tuple[str, ...] = get_args(NonMunicipalReason)
+SECTION_TYPES: tuple[str, ...] = get_args(SectionType)
+
+# Level number shown next to the name and colour (5.3): green 1 ... orange 5.
+ITRS_LEVEL_NUMBER = {level: number for number, level in enumerate(ITRS_LEVELS, start=1)}
+
+# At most this many band lanes besides `elevation` (5.7).
+MAX_BAND_LANES = 3

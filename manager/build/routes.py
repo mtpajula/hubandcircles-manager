@@ -11,7 +11,7 @@ from shapely.geometry import LineString
 from shapely.ops import transform
 
 from manager.build.errors import BuildError
-from manager.models import Bbox, PublishedRoute, Route
+from manager.models import Bbox, PublishedRoute, PublishedSegment, Route
 
 # Same as the example in chapter 7.3: metres in EPSG:3067, degrees in WGS84.
 to_m = Transformer.from_crs(4326, 3067, always_xy=True).transform
@@ -119,7 +119,11 @@ def process_route(directory: Path, route: Route) -> RouteResult:
 
 
 def published_route(route: Route, result: RouteResult) -> PublishedRoute:
-    """route.json: source card + computed fields (5.3). V0: no media, no nearby services."""
+    """route.json: source card + computed fields (5.3). V0: no media, no nearby services.
+
+    ponytail: segments are copied as given; normalisation, shares, dominant surface and the
+    GPX export are M3b (build/presentation.py).
+    """
     return PublishedRoute(
         id=route.id,
         name=route.name,
@@ -131,8 +135,15 @@ def published_route(route: Route, result: RouteResult) -> PublishedRoute:
         cover_image=None,  # ponytail: V1 media → cover-<hash>-400.webp
         maintainer=route.maintainer,
         difficulty=route.difficulty,
+        itrs=route.itrs,
+        winter_maintenance=route.winter_maintenance,
         lipas_id=route.lipas_id,
         track="track.geojson",
         profile=result.profile,
         sections=route.sections,
+        maintenance_url=route.maintenance_url,
+        hardest_section=route.hardest_section,
+        segments=[PublishedSegment.model_validate(s.model_dump()) for s in route.segments],
+        non_municipal_reasons=route.non_municipal_reasons,
+        maintenance_note=route.maintenance_note,
     )

@@ -5,12 +5,20 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict
 
 from manager.models.common import Bbox, LangText
+from manager.models.identifiers import (
+    Difficulty,
+    Maintainer,
+    NonMunicipalReason,
+    WinterMaintenance,
+)
 from manager.models.project import Feedback
-from manager.models.route import Maintainer, Section
+from manager.models.route import HardestSection, Itrs, Section, Segment
 from manager.models.theme import Theme
 
 
 class RouteSummary(BaseModel):
+    """The route as listed in catalog.json: what the list card and the filters need (5.6)."""
+
     model_config = ConfigDict(extra="ignore")
 
     id: str
@@ -22,6 +30,13 @@ class RouteSummary(BaseModel):
     bbox: Bbox
     cover_image: str | None = None
     maintainer: Maintainer | None = None
+    difficulty: Difficulty | None = None
+    itrs: Itrs | None = None
+    winter_maintenance: WinterMaintenance | None = None
+    # ponytail: computed in M3b (build/presentation.py); None until then.
+    dominant_surface: str | None = None  # a surface, `mixed`, or None without segments
+    separated_share: float | None = None
+    surface_shares: dict[str, float] | None = None
 
 
 class PublishedMedia(BaseModel):
@@ -33,14 +48,29 @@ class PublishedMedia(BaseModel):
     location: tuple[float, float] | None = None
 
 
+class PublishedSegment(Segment):
+    """Normalised segment (5.3): a gap is a segment whose attributes are all None."""
+
+    model_config = ConfigDict(extra="ignore")
+
+
 class PublishedRoute(RouteSummary):
-    difficulty: str | None = None
     lipas_id: int | None = None
     track: str
     profile: list[tuple[float, float]]
     sections: list[Section]
     nearby_services: list[str] = []
     media: dict[str, PublishedMedia] = {}
+    maintenance_url: str | None = None
+    hardest_section: HardestSection | None = None
+    segments: list[PublishedSegment] = []
+    non_municipal_reasons: list[NonMunicipalReason] = []
+    maintenance_note: LangText | None = None
+    # ponytail: computed in M3b (build/presentation.py, GPX export); None until then.
+    traffic_shares: dict[str, float] | None = None
+    itrs_technical_shares: dict[str, float] | None = None
+    gpx: str | None = None
+    gpx_bytes: int | None = None
 
 
 class CatalogProject(BaseModel):

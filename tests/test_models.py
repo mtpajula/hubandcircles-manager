@@ -3,7 +3,16 @@
 import pytest
 from pydantic import ValidationError
 
-from manager.models import Catalog, Colors, Project, Route, Theme
+from manager.models import (
+    ITRS_LEVEL_NUMBER,
+    Catalog,
+    Colors,
+    Presentation,
+    Project,
+    PublishedRoute,
+    Route,
+    Theme,
+)
 
 # Chapter 5.1
 PROJECT = {
@@ -18,7 +27,7 @@ PROJECT = {
     "feedback": {"github_repo": "user/hubandcircles-data", "issue_form": "trail-issue.yml"},
 }
 
-# Chapter 5.2 without `presentation` (V2)
+# Chapter 5.2
 THEME = {
     "id": "mtb",
     "name": {"fi": "Maasto", "en": "Mountain biking"},
@@ -28,9 +37,16 @@ THEME = {
     "dark": False,
     "basemap": "topo",
     "default_layers": ["services", "lean_tos"],
+    "presentation": {
+        "key_figures": ["itrs_technical", "itrs_endurance", "length", "ascent"],
+        "band": ["elevation", "itrs_technical", "surface"],
+        "hero_image": "hardest_section",
+        "filters": ["itrs_technical", "length"],
+        "service_categories_first": ["water", "lean_to"],
+    },
 }
 
-# Chapter 5.3, source data, without the V2 fields (itrs, winter_maintenance, segments, ...)
+# Chapter 5.3, source data
 ROUTE = {
     "id": "ounasvaara-north-face",
     "name": {"fi": "Ounasvaaran pohjoisrinne", "en": "Ounasvaara north face"},
@@ -39,6 +55,30 @@ ROUTE = {
     "difficulty": "demanding",
     "track": "track.gpx",
     "cover_image": "media/IMG_2041.jpg",
+    "itrs": {
+        "technical": "red",
+        "endurance": "blue",
+        "exposure": 1,
+        "wilderness": 2,
+        "assessed_by": "M. Pajula",
+        "assessed_on": "2026-08-14",
+    },
+    "winter_maintenance": "groomed",
+    "maintenance_url": None,
+    "hardest_section": {
+        "media": "media/IMG_2102.jpg",
+        "km": 19.4,
+        "description": {"fi": "Kivikkoinen lasku.", "en": "Rocky descent."},
+    },
+    "segments": [
+        {"start_km": 0.0, "end_km": 4.2, "surface": "asphalt", "traffic": "separated"},
+        {"start_km": 4.2, "end_km": 18.7, "surface": "gravel", "traffic": "quiet"},
+        {"start_km": 18.7, "end_km": 21.3, "surface": "trail", "itrs_technical": "red"},
+    ],
+    "maintainer": "non_municipal",
+    "lipas_id": None,
+    "non_municipal_reasons": ["private_road_no_permission", "unmarked", "unmaintained"],
+    "maintenance_note": {"fi": "Yksityistie km 12-17.", "en": "Private road at km 12-17."},
     "sections": [
         {"type": "text", "content": {"fi": "...", "en": "..."}},
         {"type": "gallery", "media": ["media/IMG_2041.jpg", "media/IMG_2057.jpg"]},
@@ -107,10 +147,77 @@ def test_theme_defaults():
     assert t.tagline is None and t.dark is False and t.default_layers == []
 
 
+def test_theme_presentation_band_limit():
+    Presentation(band=["elevation", "surface", "traffic", "itrs_technical"])
+    with pytest.raises(ValidationError, match="lanes besides elevation"):
+        Presentation(band=["surface", "traffic", "itrs_technical", "surface"])
+
+
+@pytest.mark.parametrize(
+    "presentation",
+    [{"key_figures": ["speed"]}, {"band": ["gradient"]}, {"hero_image": "x"}, {"filters": ["x"]}],
+)
+def test_theme_presentation_unknown_identifier_rejected(presentation):
+    with pytest.raises(ValidationError):
+        Theme.model_validate({**THEME, "presentation": presentation})
+
+
 def test_route_example():
     r = Route.model_validate(ROUTE)
     assert [s.type for s in r.sections] == ["text", "gallery", "video", "elevation_profile"]
     assert r.media["media/IMG_2041.jpg"].author == "M. Pajula"
+    assert r.itrs is not None and r.itrs.technical == "red" and r.itrs.wilderness == 2
+    assert r.itrs.assessed_on is not None and r.itrs.assessed_on.isoformat() == "2026-08-14"
+    assert r.winter_maintenance == "groomed" and r.maintenance_url is None
+    assert r.hardest_section is not None and r.hardest_section.km == 19.4
+    assert [s.surface for s in r.segments] == ["asphalt", "gravel", "trail"]
+    assert r.segments[2].itrs_technical == "red" and r.segments[2].traffic is None
+    assert r.non_municipal_reasons[0] == "private_road_no_permission"
+    assert r.normalised_fields == []
+    # The published form is JSON-serialisable (date as a string) and round-trips.
+    PublishedRoute.model_validate(
+        {**r.model_dump(mode="json"), "length_km": 21.3, "bbox": [0, 0, 1, 1], "profile": []}
+    )
+
+
+@pytest.mark.parametrize(
+    ("legacy", "normalised"),
+    [
+        ("keskivaikea", "moderate"),
+        ("keskivaativa", "moderate"),
+        ("helppo", "easy"),
+        ("vaativa", "demanding"),
+    ],
+)
+def test_route_legacy_difficulty_normalised(legacy, normalised):
+    r = Route.model_validate({**ROUTE, "difficulty": legacy})
+    assert r.difficulty == normalised and r.normalised_fields == ["difficulty"]
+    # Once normalised, a re-read of the dumped card reports nothing.
+    assert Route.model_validate(r.model_dump()).normalised_fields == []
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"difficulty": "hard"},
+        {"seasons": ["monsoon"]},
+        {"winter_maintenance": "sometimes"},
+        {"itrs": {"technical": "purple"}},
+        {"itrs": {"exposure": 0}},
+        {"segments": [{"start_km": 0, "end_km": 1, "surface": "mud"}]},
+        {"segments": [{"start_km": 0, "end_km": 1, "traffic": "heavy"}]},
+        {"non_municipal_reasons": ["because"]},
+        {"hardest_section": {"km": 1.0}},
+    ],
+    ids=lambda c: next(iter(c)),
+)
+def test_route_invalid_identifier_rejected(change):
+    with pytest.raises(ValidationError):
+        Route.model_validate({**ROUTE, **change})
+
+
+def test_itrs_level_numbers():
+    assert ITRS_LEVEL_NUMBER == {"green": 1, "blue": 2, "red": 3, "black": 4, "orange": 5}
 
 
 def test_route_unknown_field_rejected():

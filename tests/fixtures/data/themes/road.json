@@ -15,5 +15,27 @@
     "highlight": "#E8A33D"
   },
   "dark": false,
-  "default_layers": []
+  "default_layers": [],
+  "presentation": {
+    "key_figures": [
+      "length",
+      "ascent",
+      "separated_share",
+      "dominant_surface"
+    ],
+    "band": [
+      "elevation",
+      "traffic",
+      "surface"
+    ],
+    "hero_image": "cover_image",
+    "filters": [
+      "length",
+      "separated_share"
+    ],
+    "service_categories_first": [
+      "cafe",
+      "bike_repair"
+    ]
+  }
 }

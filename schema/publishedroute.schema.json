@@ -38,6 +38,145 @@
       "title": "GallerySection",
       "type": "object"
     },
+    "HardestSection": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "minProperties": 1,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Description"
+        },
+        "km": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Km"
+        },
+        "media": {
+          "title": "Media",
+          "type": "string"
+        }
+      },
+      "required": [
+        "media"
+      ],
+      "title": "HardestSection",
+      "type": "object"
+    },
+    "Itrs": {
+      "additionalProperties": false,
+      "description": "ITRS assessment of the whole route (5.3). Every sub-field is optional (P11).",
+      "properties": {
+        "assessed_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assessed By"
+        },
+        "assessed_on": {
+          "anyOf": [
+            {
+              "format": "date",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assessed On"
+        },
+        "endurance": {
+          "anyOf": [
+            {
+              "enum": [
+                "green",
+                "blue",
+                "red",
+                "black",
+                "orange"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Endurance"
+        },
+        "exposure": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Exposure"
+        },
+        "technical": {
+          "anyOf": [
+            {
+              "enum": [
+                "green",
+                "blue",
+                "red",
+                "black",
+                "orange"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Technical"
+        },
+        "wilderness": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Wilderness"
+        }
+      },
+      "title": "Itrs",
+      "type": "object"
+    },
     "PublishedMedia": {
       "properties": {
         "author": {
@@ -84,6 +223,81 @@
         "license"
       ],
       "title": "PublishedMedia",
+      "type": "object"
+    },
+    "PublishedSegment": {
+      "description": "Normalised segment (5.3): a gap is a segment whose attributes are all None.",
+      "properties": {
+        "end_km": {
+          "title": "End Km",
+          "type": "number"
+        },
+        "itrs_technical": {
+          "anyOf": [
+            {
+              "enum": [
+                "green",
+                "blue",
+                "red",
+                "black",
+                "orange"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Itrs Technical"
+        },
+        "start_km": {
+          "title": "Start Km",
+          "type": "number"
+        },
+        "surface": {
+          "anyOf": [
+            {
+              "enum": [
+                "asphalt",
+                "paving",
+                "gravel",
+                "trail",
+                "boardwalk",
+                "snow"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Surface"
+        },
+        "traffic": {
+          "anyOf": [
+            {
+              "enum": [
+                "separated",
+                "quiet",
+                "busy"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Traffic"
+        }
+      },
+      "required": [
+        "start_km",
+        "end_km"
+      ],
+      "title": "PublishedSegment",
       "type": "object"
     },
     "TextSection": {
@@ -179,6 +393,11 @@
     "difficulty": {
       "anyOf": [
         {
+          "enum": [
+            "easy",
+            "moderate",
+            "demanding"
+          ],
           "type": "string"
         },
         {
@@ -188,9 +407,82 @@
       "default": null,
       "title": "Difficulty"
     },
+    "dominant_surface": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Dominant Surface"
+    },
+    "gpx": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Gpx"
+    },
+    "gpx_bytes": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Gpx Bytes"
+    },
+    "hardest_section": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/HardestSection"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
     "id": {
       "title": "Id",
       "type": "string"
+    },
+    "itrs": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Itrs"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "itrs_technical_shares": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Itrs Technical Shares"
     },
     "length_km": {
       "title": "Length Km",
@@ -224,6 +516,34 @@
       "default": null,
       "title": "Maintainer"
     },
+    "maintenance_note": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "minProperties": 1,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Maintenance Note"
+    },
+    "maintenance_url": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Maintenance Url"
+    },
     "media": {
       "additionalProperties": {
         "$ref": "#/$defs/PublishedMedia"
@@ -246,6 +566,21 @@
         "type": "string"
       },
       "title": "Nearby Services",
+      "type": "array"
+    },
+    "non_municipal_reasons": {
+      "default": [],
+      "items": {
+        "enum": [
+          "private_road_no_permission",
+          "unmarked",
+          "unmaintained",
+          "everymans_rights_terrain",
+          "seasonal"
+        ],
+        "type": "string"
+      },
+      "title": "Non Municipal Reasons",
       "type": "array"
     },
     "profile": {
@@ -301,6 +636,41 @@
       "title": "Sections",
       "type": "array"
     },
+    "segments": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/PublishedSegment"
+      },
+      "title": "Segments",
+      "type": "array"
+    },
+    "separated_share": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Separated Share"
+    },
+    "surface_shares": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Surface Shares"
+    },
     "themes": {
       "items": {
         "type": "string"
@@ -311,6 +681,38 @@
     "track": {
       "title": "Track",
       "type": "string"
+    },
+    "traffic_shares": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Traffic Shares"
+    },
+    "winter_maintenance": {
+      "anyOf": [
+        {
+          "enum": [
+            "plowed",
+            "groomed",
+            "none"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Winter Maintenance"
     }
   },
   "required": [

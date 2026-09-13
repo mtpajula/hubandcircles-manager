@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-12T12:26:44Z",
+  "generated_at": "2026-09-13T08:35:31Z",
   "project": {
     "name": {
       "fi": "Testiprojekti",
@@ -41,7 +41,29 @@
         "highlight": "#E8A33D"
       },
       "dark": true,
-      "default_layers": []
+      "default_layers": [],
+      "presentation": {
+        "key_figures": [
+          "length",
+          "winter_maintenance",
+          "itrs_technical",
+          "longest_service_gap"
+        ],
+        "band": [
+          "elevation",
+          "itrs_technical"
+        ],
+        "hero_image": "hardest_section",
+        "filters": [
+          "length",
+          "itrs_technical",
+          "winter_maintenance"
+        ],
+        "service_categories_first": [
+          "hut",
+          "lean_to"
+        ]
+      }
     },
     {
       "id": "mtb",
@@ -60,7 +82,29 @@
         "highlight": "#E8A33D"
       },
       "dark": false,
-      "default_layers": []
+      "default_layers": [],
+      "presentation": {
+        "key_figures": [
+          "itrs_technical",
+          "itrs_endurance",
+          "length",
+          "ascent"
+        ],
+        "band": [
+          "elevation",
+          "itrs_technical",
+          "surface"
+        ],
+        "hero_image": "hardest_section",
+        "filters": [
+          "itrs_technical",
+          "length"
+        ],
+        "service_categories_first": [
+          "water",
+          "lean_to"
+        ]
+      }
     },
     {
       "id": "gravel",
@@ -74,12 +118,34 @@
       },
       "order": 3,
       "colors": {
-        "primary": "#9A6414",
-        "route": "#9A6414",
+        "primary": "#8F5D12",
+        "route": "#8F5D12",
         "highlight": "#E8A33D"
       },
       "dark": false,
-      "default_layers": []
+      "default_layers": [],
+      "presentation": {
+        "key_figures": [
+          "length",
+          "ascent",
+          "surface_shares",
+          "itrs_endurance"
+        ],
+        "band": [
+          "elevation",
+          "surface"
+        ],
+        "hero_image": "cover_image",
+        "filters": [
+          "length",
+          "dominant_surface"
+        ],
+        "service_categories_first": [
+          "cafe",
+          "water",
+          "shop"
+        ]
+      }
     },
     {
       "id": "road",
@@ -98,7 +164,29 @@
         "highlight": "#E8A33D"
       },
       "dark": false,
-      "default_layers": []
+      "default_layers": [],
+      "presentation": {
+        "key_figures": [
+          "length",
+          "ascent",
+          "separated_share",
+          "dominant_surface"
+        ],
+        "band": [
+          "elevation",
+          "traffic",
+          "surface"
+        ],
+        "hero_image": "cover_image",
+        "filters": [
+          "length",
+          "separated_share"
+        ],
+        "service_categories_first": [
+          "cafe",
+          "bike_repair"
+        ]
+      }
     },
     {
       "id": "touring",
@@ -117,7 +205,30 @@
         "highlight": "#E8A33D"
       },
       "dark": false,
-      "default_layers": []
+      "default_layers": [],
+      "presentation": {
+        "key_figures": [
+          "length",
+          "longest_service_gap",
+          "itrs_wilderness",
+          "ascent"
+        ],
+        "band": [
+          "elevation",
+          "surface"
+        ],
+        "hero_image": "cover_image",
+        "filters": [
+          "length",
+          "difficulty"
+        ],
+        "service_categories_first": [
+          "accommodation",
+          "water",
+          "shop",
+          "lean_to"
+        ]
+      }
     }
   ],
   "layers": [],
@@ -141,7 +252,11 @@
         66.499,
         25.73,
         66.5025
-      ]
+      ],
+      "difficulty": "easy",
+      "itrs": {
+        "endurance": "blue"
+      }
     }
   ],
   "overview": "overview.geojson"

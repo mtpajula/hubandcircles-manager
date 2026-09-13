@@ -1,10 +1,28 @@
 """Route card, source data (routes/<id>/route.json), chapter 5.3."""
 
-from typing import Annotated, Literal
+from datetime import date
+from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    ModelWrapValidatorHandler,
+    PrivateAttr,
+    model_validator,
+)
 
 from manager.models.common import LangText
+from manager.models.identifiers import (
+    Difficulty,
+    ItrsLevel,
+    Maintainer,
+    NonMunicipalReason,
+    Season,
+    Surface,
+    Traffic,
+    WinterMaintenance,
+)
 
 
 class TextSection(BaseModel):
@@ -40,15 +58,54 @@ Section = Annotated[
 ]
 
 
-# Being in the municipal register (Lipas) is the definition of "municipal" (5.3, AP24).
-Maintainer = Literal["municipal", "non_municipal"]
-
-
 class MediaInfo(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     author: str
     license: str
+
+
+class Itrs(BaseModel):
+    """ITRS assessment of the whole route (5.3). Every sub-field is optional (P11)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    technical: ItrsLevel | None = None
+    endurance: ItrsLevel | None = None
+    # Scales are in project.itrs_scales; 1...max is checked in validate (7.2, ITRS values).
+    exposure: int | None = Field(default=None, gt=0)
+    wilderness: int | None = Field(default=None, gt=0)
+    assessed_by: str | None = None
+    assessed_on: date | None = None
+
+
+class HardestSection(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    media: str  # key of route.media or a file under the route directory; checked in validate
+    km: float | None = None  # ponytail: computed from the image EXIF location in M3b
+    description: LangText | None = None
+
+
+class Segment(BaseModel):
+    """Part of the route in km (5.3). A missing attribute is unknown for that part."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    start_km: float
+    end_km: float
+    surface: Surface | None = None
+    traffic: Traffic | None = None
+    itrs_technical: ItrsLevel | None = None
+
+
+# Old difficulty values, normalised when the card is read (5.3); the build reports it as info.
+LEGACY_DIFFICULTY = {
+    "helppo": "easy",
+    "keskivaikea": "moderate",
+    "keskivaativa": "moderate",
+    "vaativa": "demanding",
+}
 
 
 class Route(BaseModel):
@@ -57,13 +114,37 @@ class Route(BaseModel):
     id: str
     name: LangText
     themes: list[str]
-    seasons: list[str]
-    # ponytail: free string in V1; Literal["easy", "moderate", "demanding"] in V2.
+    seasons: list[Season]
     # None = not assessed (P11); an imported route starts without one.
-    difficulty: str | None = None
+    difficulty: Difficulty | None = None
     track: str = "track.gpx"
     cover_image: str | None = None
+    itrs: Itrs | None = None
+    winter_maintenance: WinterMaintenance | None = None
+    maintenance_url: str | None = None
+    hardest_section: HardestSection | None = None
+    segments: list[Segment] = []
     sections: list[Section] = []
     media: dict[str, MediaInfo] = {}
     lipas_id: int | None = None  # Lipas sports facility id (properties.id), chapter 7.13
     maintainer: Maintainer | None = None  # None = unknown, no marker shown (AP24)
+    non_municipal_reasons: list[NonMunicipalReason] = []
+    maintenance_note: LangText | None = None
+
+    # Names of the fields whose legacy value was normalised while reading; not part of the data.
+    _normalised_fields: list[str] = PrivateAttr(default_factory=list)
+
+    @property
+    def normalised_fields(self) -> list[str]:
+        return self._normalised_fields
+
+    @model_validator(mode="wrap")
+    @classmethod
+    def _normalise_legacy_values(cls, data: Any, handler: ModelWrapValidatorHandler["Route"]):
+        normalised = []
+        if isinstance(data, dict) and data.get("difficulty") in LEGACY_DIFFICULTY:
+            data = {**data, "difficulty": LEGACY_DIFFICULTY[data["difficulty"]]}
+            normalised.append("difficulty")
+        route = handler(data)
+        route._normalised_fields = normalised
+        return route

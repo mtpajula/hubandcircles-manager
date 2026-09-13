@@ -83,15 +83,19 @@ with st.container(border=True):
         warnings.metric(texts.METRIC_WARNINGS, len(report.warnings))
         st.markdown(f"**{texts.CHECKS_HEADER}**")
         for check in CHECKS:
-            messages = report.warnings_by_check.get(check, [])
+            findings = report.findings_by_check.get(check, [])
+            warnings = [f for f in findings if f.level == "warning"]
             name = texts.CHECK_NAMES[check]
-            if not messages:
+            if not findings:
                 st.markdown(texts.CHECK_PASSED.format(name=name))
+                continue
+            if warnings:
+                st.markdown(texts.CHECK_WARNING.format(name=name, count=len(warnings)))
             else:
-                st.markdown(texts.CHECK_WARNING.format(name=name, count=len(messages)))
-                with st.expander(texts.CHECK_SHOW):
-                    for message in messages:
-                        st.text(message)
+                st.markdown(texts.CHECK_INFO.format(name=name, count=len(findings)))
+            with st.expander(texts.CHECK_SHOW):
+                for finding in findings:
+                    st.text(finding.message)
 
 stale = is_stale(source, dist)  # after the build button, so a fresh build counts at once
 

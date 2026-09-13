@@ -15,5 +15,27 @@
     "highlight": "#E8A33D"
   },
   "dark": true,
-  "default_layers": []
+  "default_layers": [],
+  "presentation": {
+    "key_figures": [
+      "length",
+      "winter_maintenance",
+      "itrs_technical",
+      "longest_service_gap"
+    ],
+    "band": [
+      "elevation",
+      "itrs_technical"
+    ],
+    "hero_image": "hardest_section",
+    "filters": [
+      "length",
+      "itrs_technical",
+      "winter_maintenance"
+    ],
+    "service_categories_first": [
+      "hut",
+      "lean_to"
+    ]
+  }
 }

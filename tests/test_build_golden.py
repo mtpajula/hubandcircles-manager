@@ -9,7 +9,7 @@ from .conftest import EXPECTED, FIXTURE
 
 def test_golden(tmp_path):
     report = build(FIXTURE, tmp_path / "dist")
-    assert report.route_count == 1 and report.warnings == []
+    assert report.route_count == 1 and report.warnings == [] and report.infos == []
     assert report.first_visit_bytes > 0 and "First-visit size:" in report.text()
 
     catalog = json.loads((tmp_path / "dist" / "catalog.json").read_text())
@@ -17,9 +17,13 @@ def test_golden(tmp_path):
     assert catalog["generated_at"].endswith("Z")
     del catalog["generated_at"], expected["generated_at"]
     assert catalog == expected
-    # Chapter 5.6 / 5.8: five themes in `order`, each with tagline and dark; no V2/V3 keys yet.
+    # Chapter 5.6 / 5.8: five themes in `order`, each with tagline, dark and presentation.
     assert [t["id"] for t in catalog["themes"]] == ["winter", "mtb", "gravel", "road", "touring"]
-    assert all("tagline" in t and "dark" in t for t in catalog["themes"])
+    assert all("tagline" in t and "dark" in t and "presentation" in t for t in catalog["themes"])
+    # The list card fields of 5.6 are in the summary; computed ones are absent until M3b (P11).
+    summary = catalog["routes"][0]
+    assert summary["difficulty"] == "easy" and summary["itrs"] == {"endurance": "blue"}
+    assert "dominant_surface" not in summary and "surface_shares" not in summary
     assert catalog["schema_version"] == 1 and catalog["layers"] == []
     assert "services" not in catalog and "coverage" not in catalog
 
