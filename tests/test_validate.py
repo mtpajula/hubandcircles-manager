@@ -36,6 +36,35 @@ def test_translation_other_language_missing_is_warning(data, tmp_path):
     assert report.warnings == ["route test-loop: name missing language en"]
 
 
+def test_manual_marker_with_missing_target_is_warning(data, tmp_path):
+    _edit(
+        data / "services" / "manual.geojson",
+        lambda d: d["features"].append(
+            {
+                "type": "Feature",
+                "properties": {"replaces": "osm:node/442", "hidden": True},
+                "geometry": None,
+            }
+        ),
+    )
+    report = build(data, tmp_path / "dist")
+    assert report.warnings == [
+        "manual marker (no id): replaces 'osm:node/442', which no longer exists"
+    ]
+    assert [f.check for f in report.findings_by_check["manual_markers"]] == ["manual_markers"]
+
+
+def test_broken_service_file_stops_build(data, tmp_path):
+    _edit(
+        data / "services" / "manual.geojson",
+        lambda d: d["features"].append(
+            {"type": "Feature", "properties": {"category": "sauna"}, "geometry": None}
+        ),
+    )
+    with pytest.raises(BuildError, match="manual.geojson: category: Input should be 'cafe'"):
+        build(data, tmp_path / "dist")
+
+
 def test_translation_section_content_found_generically(data, tmp_path):
     _edit(_route(data), lambda d: d["sections"][0]["content"].pop("en"))
     report = build(data, tmp_path / "dist")

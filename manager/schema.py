@@ -3,9 +3,18 @@
 import json
 from pathlib import Path
 
-from manager.models import Catalog, Project, PublishedRoute, PublishSettings, Route, Theme
+from manager.models import (
+    Catalog,
+    Project,
+    PublishedRoute,
+    PublishSettings,
+    Route,
+    Service,
+    Theme,
+)
 
-MODELS = [Project, Theme, Route, Catalog, PublishedRoute, PublishSettings]
+# Service: the feature properties of the published services.geojson (5.5) plus `location`.
+MODELS = [Project, Theme, Route, Catalog, PublishedRoute, PublishSettings, Service]
 
 
 def generate(target: Path) -> list[Path]:

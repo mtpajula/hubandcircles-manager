@@ -13,6 +13,8 @@ from manager.models.identifiers import (
     NonMunicipalReason,
     Season,
     SectionType,
+    ServiceCategory,
+    ServiceSource,
     Surface,
     Traffic,
     WinterMaintenance,
@@ -27,10 +29,12 @@ from manager.models.publish_settings import (
 from manager.models.published import (
     Catalog,
     CatalogProject,
+    NearbyService,
     PublishedMedia,
     PublishedRoute,
     PublishedSegment,
     RouteSummary,
+    ServiceGap,
 )
 from manager.models.route import (
     LEGACY_DIFFICULTY,
@@ -45,6 +49,7 @@ from manager.models.route import (
     TextSection,
     VideoSection,
 )
+from manager.models.service import ManualMarker, Service
 from manager.models.theme import Colors, Presentation, Theme
 
 __all__ = [
@@ -70,7 +75,9 @@ __all__ = [
     "KeyFigure",
     "LangText",
     "Maintainer",
+    "ManualMarker",
     "MediaInfo",
+    "NearbyService",
     "NonMunicipalReason",
     "Presentation",
     "Project",
@@ -84,6 +91,10 @@ __all__ = [
     "Section",
     "SectionType",
     "Segment",
+    "Service",
+    "ServiceCategory",
+    "ServiceGap",
+    "ServiceSource",
     "Surface",
     "Target",
     "TextSection",

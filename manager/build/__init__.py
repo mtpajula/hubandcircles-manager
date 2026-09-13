@@ -14,6 +14,7 @@ from manager.build.media import publish_media
 from manager.build.overview import overview
 from manager.build.read import read_source_data
 from manager.build.routes import process_route, published_route
+from manager.build.services import merge, services_collection
 from manager.report import presentation_coverage
 from manager.validate import CHECKS, Finding, check_all
 
@@ -84,6 +85,7 @@ def build(data_dir: Path, dist_dir: Path) -> BuildReport:
     tmp.mkdir(parents=True)
 
     results = [(route, process_route(directory, route)) for directory, route in source.routes]
+    services = merge(source.osm_services, source.visitfinland_services, source.manual_markers)
     published = []
     language = source.project.default_language
     for (directory, _), (route, result) in zip(source.routes, results, strict=True):
@@ -91,13 +93,24 @@ def build(data_dir: Path, dist_dir: Path) -> BuildReport:
         media = publish_media(directory, route, out)
         # A name without the default language is a validation error below; the id fills in.
         gpx = export_gpx(result.points, route.name.get(language, route.id))
-        route_json = published_route(route, result, gpx_bytes=len(gpx), media=media)
+        route_json = published_route(
+            route,
+            result,
+            gpx_bytes=len(gpx),
+            media=media,
+            services=services.services,
+            nearby_m=source.project.nearby_services_m,
+            themes=source.themes,
+        )
         write_json(out / "route.json", published_form(route_json))
         write_json(out / "track.geojson", result.track)
         (out / route_json.gpx).write_bytes(gpx)
         published.append(route_json)
     write_json(tmp / "overview.geojson", overview(results))
-    write_json(tmp / "catalog.json", published_form(build_catalog(source, published)))
+    if services.services:
+        write_json(tmp / "services.geojson", services_collection(services.services))
+    catalog = build_catalog(source, published, services=bool(services.services))
+    write_json(tmp / "catalog.json", published_form(catalog))
 
     findings = check_all(data_dir, tmp, source, published)
     errors = [x.message for x in findings if x.level == "error"]

@@ -11,9 +11,18 @@ from shapely.geometry import LineString
 from shapely.ops import transform
 
 from manager.build.errors import BuildError
-from manager.build.projection import km_along_lines, to_m
+from manager.build.projection import TrackProjector, km_along_lines, to_m
 from manager.build.segments import dominant, normalise, shares
-from manager.models import Bbox, PublishedMedia, PublishedRoute, Route
+from manager.models import (
+    Bbox,
+    NearbyService,
+    PublishedMedia,
+    PublishedRoute,
+    Route,
+    Service,
+    ServiceGap,
+    Theme,
+)
 
 # Same as the example in chapter 7.3: metres in EPSG:3067, degrees in WGS84.
 to_deg = Transformer.from_crs(3067, 4326, always_xy=True).transform
@@ -139,20 +148,72 @@ def process_route(directory: Path, route: Route) -> RouteResult:
     )
 
 
+def nearby_services(
+    lines: list[Coordinates], services: list[Service], within_m: float
+) -> list[tuple[Service, float]]:
+    """Services within `within_m` of the track with their km, sorted by km (5.3)."""
+    projector = TrackProjector(lines)
+    found = []
+    for service in services:
+        distance, km = projector.project(service.location)
+        if distance <= within_m:
+            found.append((service, km))
+    return sorted(found, key=lambda pair: pair[1])
+
+
+def longest_gap(kms: list[float], length_km: float) -> ServiceGap:
+    """The longest stretch between consecutive positions, the start (0) and the end included."""
+    positions = sorted({0.0, length_km, *(min(max(km, 0.0), length_km) for km in kms)})
+    start, end = max(pairwise(positions), key=lambda pair: pair[1] - pair[0])
+    return ServiceGap(km=round(end - start, 1), start_km=round(start, 1), end_km=round(end, 1))
+
+
+def _service_gaps(
+    nearby: list[tuple[Service, float]], length_km: float, themes: list[Theme]
+) -> tuple[dict[str, float] | None, dict[str, ServiceGap] | None]:
+    """service_gaps per category and longest_service_gap per theme (7.11); None, None when no
+    theme of the route lists service_categories_first."""
+    first = {
+        t.id: t.presentation.service_categories_first
+        for t in themes
+        if t.presentation and t.presentation.service_categories_first
+    }
+    if not first:
+        return None, None
+    kms_by_category: dict[str, list[float]] = {}
+    for service, km in nearby:
+        kms_by_category.setdefault(service.category, []).append(km)
+    categories = list(dict.fromkeys(c for cs in first.values() for c in cs))
+    gaps = {c: longest_gap(kms_by_category.get(c, []), length_km).km for c in categories}
+    per_theme = {
+        theme: longest_gap([km for c in cs for km in kms_by_category.get(c, [])], length_km)
+        for theme, cs in first.items()
+    }
+    return gaps, per_theme
+
+
 def published_route(
     route: Route,
     result: RouteResult,
     gpx_bytes: int,
     media: dict[str, PublishedMedia] | None = None,
+    services: list[Service] | None = None,
+    nearby_m: float = 500,
+    themes: list[Theme] | None = None,
 ) -> PublishedRoute:
     """route.json: source card + computed fields (5.3, 7.11).
 
     `media` is the output of build/media.py. cover_image becomes the 400 px path relative to the
     data root; hardest_section.km is projected from the image location when the source has none.
-
-    ponytail: no services (service gaps).
+    `services` is the merged list of build/services.py and `themes` the themes of the project:
+    nearby services and the service gaps are computed only when the project has services (P11).
     """
     media = media or {}
+    nearby = nearby_services(geometry_lines(result.track["geometry"]), services or [], nearby_m)
+    route_themes = sorted((t for t in themes or [] if t.id in route.themes), key=lambda t: t.order)
+    gaps, per_theme = (
+        _service_gaps(nearby, result.length_km, route_themes) if services else (None, None)
+    )
     cover = media.get(route.cover_image or "")
     cover_image = f"routes/{route.id}/{cover.sizes['400']}" if cover else None
     hardest = route.hardest_section
@@ -201,4 +262,7 @@ def published_route(
         maintenance_note=route.maintenance_note,
         gpx="route.gpx",
         gpx_bytes=gpx_bytes,
+        nearby_services=[NearbyService(id=s.id, km=round(km, 1)) for s, km in nearby],
+        service_gaps=gaps,
+        longest_service_gap=per_theme,
     )

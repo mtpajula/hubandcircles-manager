@@ -48,6 +48,22 @@ NonMunicipalReason = Literal[
     "seasonal",
 ]
 SectionType = Literal["text", "gallery", "video", "elevation_profile"]
+# Service point categories (5.5); `issue` is a problem spot with severity and validity.
+ServiceCategory = Literal[
+    "cafe",
+    "restaurant",
+    "shop",
+    "accommodation",
+    "bike_repair",
+    "bike_rental",
+    "water",
+    "toilet",
+    "lean_to",
+    "hut",
+    "issue",
+]
+# Merge priority in build/services.py: manual > visitfinland > osm (5.5).
+ServiceSource = Literal["osm", "visitfinland", "manual"]
 
 KEY_FIGURES: tuple[str, ...] = get_args(KeyFigure)
 BAND_LANES: tuple[str, ...] = get_args(BandLane)
@@ -62,6 +78,8 @@ SEASONS: tuple[str, ...] = get_args(Season)
 MAINTAINERS: tuple[str, ...] = get_args(Maintainer)
 NON_MUNICIPAL_REASONS: tuple[str, ...] = get_args(NonMunicipalReason)
 SECTION_TYPES: tuple[str, ...] = get_args(SectionType)
+SERVICE_CATEGORIES: tuple[str, ...] = get_args(ServiceCategory)
+SERVICE_SOURCES: tuple[str, ...] = get_args(ServiceSource)
 
 # Level number shown next to the name and colour (5.3): green 1 ... orange 5.
 ITRS_LEVEL_NUMBER = {level: number for number, level in enumerate(ITRS_LEVELS, start=1)}

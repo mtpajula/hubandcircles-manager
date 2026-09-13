@@ -8,8 +8,8 @@ import pytest
 
 from manager.build import BuildError
 from manager.build.gpx import export_gpx
-from manager.build.routes import process_route, published_route
-from manager.models import Route, Segment
+from manager.build.routes import longest_gap, nearby_services, process_route, published_route
+from manager.models import PublishedRoute, Route, Segment, Service, ServiceGap, Theme
 
 from .conftest import FIXTURE
 
@@ -223,3 +223,73 @@ def test_published_route_computed_fields():
     assert published.dominant_surface == "gravel" and published.separated_share == 0.62
     assert published.gpx == "route.gpx" and published.gpx_bytes == 123
     assert published.hardest_section is None
+
+
+# --- services along the route (5.3, 7.11) ---------------------------------------------------
+
+
+def _theme(theme_id: str, order: int, categories: list[str]) -> Theme:
+    return Theme(
+        id=theme_id,
+        name={"fi": theme_id},
+        order=order,
+        colors={"primary": "#000000", "route": "#000000", "highlight": "#000000"},
+        presentation={"service_categories_first": categories},
+    )
+
+
+def _service(service_id: str, category: str, location: tuple[float, float]) -> Service:
+    return Service(id=service_id, category=category, source="osm", location=location)
+
+
+# Near the 4th fixture point (km 0.407) and the 8th (km 0.945); the third is 1.3 km away.
+SERVICES = [
+    _service("osm:node/1", "water", (25.726, 66.5028)),  # 30 m north of the track
+    _service("osm:node/2", "lean_to", (25.7262, 66.4992)),  # 20 m off
+    _service("osm:node/3", "cafe", (25.76, 66.5)),  # 1.3 km east: not nearby
+]
+THEMES = [_theme("winter", 1, ["hut", "lean_to"]), _theme("mtb", 2, ["water", "lean_to"])]
+
+
+def _published(themes: list[str], services=SERVICES, project_themes=THEMES) -> PublishedRoute:
+    route = Route(id="t", name={"fi": "t"}, themes=themes, seasons=[])
+    result = process_route(FIXTURE / "routes" / "test-loop", route)
+    return published_route(route, result, 1, services=services, themes=project_themes)
+
+
+def test_nearby_services_within_distance_sorted_by_km():
+    track = process_route(FIXTURE / "routes" / "test-loop", ROUTE).track
+    nearby = nearby_services([track["geometry"]["coordinates"]], SERVICES, 500)
+    assert [s.id for s, _ in nearby] == ["osm:node/1", "osm:node/2"]
+    assert [km for _, km in nearby] == pytest.approx([0.407, 0.945], abs=0.02)
+    assert nearby_services([[(25.72, 66.5), (25.73, 66.5)]], SERVICES, 10) == []
+
+
+def test_longest_gap_includes_start_and_end():
+    assert longest_gap([], 10.0) == ServiceGap(km=10.0, start_km=0.0, end_km=10.0)
+    assert longest_gap([4.0], 10.0) == ServiceGap(km=6.0, start_km=4.0, end_km=10.0)
+    assert longest_gap([4.0, 9.0], 10.0) == ServiceGap(km=5.0, start_km=4.0, end_km=9.0)
+    assert longest_gap([4.0, 4.0, 10.4], 10.0) == ServiceGap(km=6.0, start_km=4.0, end_km=10.0)
+
+
+def test_published_route_service_gaps_per_category_and_theme():
+    route = _published(["winter", "mtb"])
+    assert [n.model_dump() for n in route.nearby_services] == [
+        {"id": "osm:node/1", "km": 0.4},
+        {"id": "osm:node/2", "km": 0.9},
+    ]
+    # Every category of the route's themes: hut has no point → the whole length.
+    assert route.service_gaps == {"hut": 1.3, "lean_to": 0.9, "water": 0.9}
+    assert route.longest_service_gap == {
+        "winter": ServiceGap(km=0.9, start_km=0.0, end_km=0.9),
+        "mtb": ServiceGap(km=0.5, start_km=0.4, end_km=0.9),
+    }
+
+
+def test_published_route_gaps_omitted_without_service_themes_or_services():
+    only_nearby = _published(["road"], project_themes=[_theme("road", 3, [])])
+    assert [n.id for n in only_nearby.nearby_services] == ["osm:node/1", "osm:node/2"]
+    assert only_nearby.service_gaps is None and only_nearby.longest_service_gap is None
+    none = _published(["winter"], services=[])
+    assert none.nearby_services == [] and none.service_gaps is None
+    assert none.longest_service_gap is None

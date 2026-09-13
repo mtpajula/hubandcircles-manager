@@ -1,0 +1,59 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62 (fixture)",
+  "osm3s": { "timestamp_osm_base": "2026-09-13T08:00:00Z" },
+  "elements": [
+    {
+      "type": "node",
+      "id": 101,
+      "lat": 66.5012,
+      "lon": 25.7215,
+      "tags": {
+        "amenity": "cafe",
+        "name": "Kahvila Napa",
+        "name:en": "Cafe Hub",
+        "website": "https://example.test/napa",
+        "opening_hours": "Mo-Fr 09:00-17:00"
+      }
+    },
+    {
+      "type": "node",
+      "id": 102,
+      "lat": 66.5024,
+      "lon": 25.7260,
+      "tags": { "amenity": "drinking_water" }
+    },
+    {
+      "type": "node",
+      "id": 103,
+      "lat": 66.4992,
+      "lon": 25.7262,
+      "tags": { "amenity": "shelter", "shelter_type": "lean_to", "name": "Vaattungin laavu" }
+    },
+    {
+      "type": "node",
+      "id": 104,
+      "lat": 66.5000,
+      "lon": 25.7300,
+      "tags": { "amenity": "shelter", "shelter_type": "picnic_shelter", "name": "Piknikkatos" }
+    },
+    {
+      "type": "way",
+      "id": 201,
+      "center": { "lat": 66.5010, "lon": 25.7295 },
+      "nodes": [1, 2, 3, 4, 1],
+      "tags": {
+        "shop": "supermarket",
+        "name": "Market",
+        "contact:website": "https://example.test/market"
+      }
+    },
+    {
+      "type": "node",
+      "id": 105,
+      "lat": 66.5030,
+      "lon": 25.7280,
+      "tags": { "tourism": "wilderness_hut", "name": "Erätupa", "name:en": "Wilderness hut" }
+    }
+  ]
+}

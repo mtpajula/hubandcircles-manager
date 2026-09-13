@@ -33,6 +33,15 @@ def build_parser() -> argparse.ArgumentParser:
     e.add_argument("--port", type=int, default=8765)
     e.add_argument("--work-dir", type=Path, default=ROOT, help="where bundle/ is assembled")
 
+    f = subcommands.add_parser(
+        "fetch",
+        help="fetch a service source and write its snapshot into services/ (7.6)",
+        description="Writes the snapshot directly; the Streamlit page shows the diff first and "
+        "lets you accept it separately.",
+    )
+    f.add_argument("source", choices=["osm"], help="osm: Overpass query of project.area")
+    f.add_argument("--data", type=Path, default=env("DATA_DIR"), help="source data root")
+
     li = subcommands.add_parser("import-lipas", help="Lipas register → sources/lipas.geojson")
     li.add_argument("--data", type=Path, default=env("DATA_DIR"), help="source data root")
     li.add_argument("--bbox", type=_bbox, help="MINX,MINY,MAXX,MAXY in EPSG:3067 (default: area)")

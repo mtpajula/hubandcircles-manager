@@ -96,6 +96,33 @@ def test_full_gpx_and_catalog_images(full):
     ]
 
 
+def test_full_services_nearby_and_gaps(full):
+    dist, _ = full
+    route = _route(dist, "full-loop")
+    # services/osm.geojson: a water point and a lean-to near the track (5.3, 7.11).
+    assert route["nearby_services"] == [
+        {"id": "osm:node/102", "km": 0.4},
+        {"id": "osm:node/103", "km": 0.9},
+    ]
+    assert route["service_gaps"] == {
+        "hut": 1.3,
+        "lean_to": 0.9,
+        "water": 0.9,
+        "cafe": 1.3,
+        "bike_repair": 1.3,
+    }
+    assert route["longest_service_gap"] == {
+        "winter": {"km": 0.9, "start_km": 0.0, "end_km": 0.9},
+        "mtb": {"km": 0.5, "start_km": 0.4, "end_km": 0.9},
+        "road": {"km": 1.3, "start_km": 0.0, "end_km": 1.3},
+    }
+    catalog = json.loads((dist / "catalog.json").read_text(encoding="utf-8"))
+    assert catalog["services"] == "services.geojson"
+    services = json.loads((dist / catalog["services"]).read_text(encoding="utf-8"))
+    assert [f["properties"]["id"] for f in services["features"]] == ["osm:node/102", "osm:node/103"]
+    assert "location" not in services["features"][0]["properties"]
+
+
 def test_full_media_sizes_exist_without_metadata(full):
     dist, _ = full
     route = _route(dist, "full-loop")

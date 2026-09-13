@@ -12,6 +12,7 @@ from manager.validate.itrs_missing import check_itrs_missing
 from manager.validate.itrs_values import check_itrs_values
 from manager.validate.links import check_links
 from manager.validate.maintenance_reasons import check_maintenance_reasons
+from manager.validate.manual_markers import check_manual_markers
 from manager.validate.media import check_media
 from manager.validate.normalisation import check_normalisation
 from manager.validate.presentation import check_presentation
@@ -30,7 +31,7 @@ if TYPE_CHECKING:
 __all__ = ["CHECKS", "Finding", "check_all"]
 
 # Check keys in the order of chapter 7.2; the UI lists them in this order.
-# ponytail: manual markers (V2 UI), target limits (V4) and the two reports are not checks yet.
+# ponytail: target limits (V4) and the two reports are not checks yet.
 CHECKS = (
     "schema",
     "enums",
@@ -43,6 +44,7 @@ CHECKS = (
     "itrs_values",
     "maintenance_reasons",
     "translations",
+    "manual_markers",
     "itrs_missing",
     "segment_coverage",
     "normalisation",
@@ -67,6 +69,7 @@ def check_all(
         "itrs_values": check_itrs_values(source),
         "maintenance_reasons": check_maintenance_reasons(source),
         "translations": check_translations(source),
+        "manual_markers": check_manual_markers(source),
         "itrs_missing": check_itrs_missing(source),
         "segment_coverage": check_segment_coverage(source, published),
         "normalisation": check_normalisation(source),

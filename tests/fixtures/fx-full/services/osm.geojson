@@ -1,0 +1,26 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "osm:node/102",
+        "category": "water",
+        "source": "osm",
+        "fetched_at": "2026-09-13T08:00:00Z"
+      },
+      "geometry": { "type": "Point", "coordinates": [25.726, 66.5024] }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "osm:node/103",
+        "name": { "fi": "Vaattungin laavu" },
+        "category": "lean_to",
+        "source": "osm",
+        "fetched_at": "2026-09-13T08:00:00Z"
+      },
+      "geometry": { "type": "Point", "coordinates": [25.7262, 66.4992] }
+    }
+  ]
+}

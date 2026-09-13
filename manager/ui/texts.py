@@ -63,6 +63,7 @@ CHECK_NAMES = {
     "itrs_values": "ITRS-luvut",
     "maintenance_reasons": "Ylläpitosyyt",
     "translations": "Käännökset",
+    "manual_markers": "Käsin tehdyt merkinnät",
     "itrs_missing": "ITRS puuttuu",
     "segment_coverage": "Segmenttikattavuus",
     "normalisation": "Normalisointi",
@@ -286,6 +287,52 @@ LIPAS_FETCHED = "Lipas haettu: {count} reittiä"
 LIPAS_FETCH_FAILED = "Lipas-haku epäonnistui"
 BUTTON_LIPAS_CREATE = "Luo puuttuvat reittikansiot"
 LIPAS_MATCHING_LATER = "Jäljen vertailu Lipas-reitteihin tulee vaiheessa V6."
+
+# Services page (ADMIN-UI-SPEC section 4)
+SERVICES_OSM_HEADER = "OSM"
+SERVICES_SNAPSHOT_AT = "Edellinen tilannekuva {when} · {count} pistettä"
+SERVICES_NO_SNAPSHOT = "Ei tilannekuvaa"
+BUTTON_OSM_FETCH = "Hae OSM:stä"
+OSM_FETCHING = "Haetaan OSM:stä (Overpass)…"
+OSM_FETCHED = "OSM haettu: {count} pistettä"
+OSM_FETCH_FAILED = "OSM-haku epäonnistui"
+METRIC_ADDED = "Uusia"
+METRIC_REMOVED = "Poistuneita"
+METRIC_CHANGED = "Muuttuneita"
+METRIC_TOTAL = "Yhteensä"
+CHANGES_HEADER = "Muutokset edelliseen tilannekuvaan"
+CHANGE_COLUMNS = {"change": "muutos", "name": "nimi", "category": "kategoria", "id": "id"}
+CHANGE_NAMES = {"added": "uusi", "removed": "poistui", "changed": "muuttui"}
+NO_CHANGES = "Ei muutoksia edelliseen tilannekuvaan."
+MANUAL_TARGET_MISSING = (
+    "Käsin tehty korjaus kohteeseen {target} jäisi toimimattomaksi, jos tilannekuva hyväksytään."
+)
+BUTTON_ACCEPT_SNAPSHOT = "Hyväksy tilannekuva"
+SNAPSHOT_ACCEPTED = "Tilannekuva tallennettu: {path}"
+SERVICES_VF_LATER = "Visit Finland -tuoja tulee vaiheessa V3."
+MANUAL_MARKERS_HEADER = "Käsin tehdyt merkinnät"
+MANUAL_MARKERS_NONE = "Ei käsin tehtyjä merkintöjä."
+MANUAL_MARKER_COLUMNS = {
+    "id": "id",
+    "name": "nimi",
+    "category": "kategoria",
+    "replaces": "korvaa",
+    "hidden": "piilotettu",
+}
+MANUAL_MARKERS_MAP_LATER = "Pisteiden lisäys kartalta tulee vaiheessa V3b."
+SERVICE_CATEGORY_NAMES = {
+    "cafe": "kahvila",
+    "restaurant": "ravintola",
+    "shop": "kauppa",
+    "accommodation": "majoitus",
+    "bike_repair": "pyöräkorjaus",
+    "bike_rental": "pyörävuokraus",
+    "water": "juomavesi",
+    "toilet": "wc",
+    "lean_to": "laavu",
+    "hut": "tupa",
+    "issue": "ongelmakohta",
+}
 
 # Themes page
 THEMES_INTRO = (

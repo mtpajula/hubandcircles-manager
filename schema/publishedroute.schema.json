@@ -177,6 +177,25 @@
       "title": "Itrs",
       "type": "object"
     },
+    "NearbyService": {
+      "description": "A service point within `nearby_services_m` of the track, at its km (5.3).",
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "km": {
+          "title": "Km",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "km"
+      ],
+      "title": "NearbyService",
+      "type": "object"
+    },
     "PublishedMedia": {
       "description": "An image of the route (5.3): the WebP sizes and what the EXIF said, keyed by source path.",
       "properties": {
@@ -311,6 +330,30 @@
         "end_km"
       ],
       "title": "PublishedSegment",
+      "type": "object"
+    },
+    "ServiceGap": {
+      "description": "The longest stretch without a service of the theme's first categories (7.11).",
+      "properties": {
+        "end_km": {
+          "title": "End Km",
+          "type": "number"
+        },
+        "km": {
+          "title": "Km",
+          "type": "number"
+        },
+        "start_km": {
+          "title": "Start Km",
+          "type": "number"
+        }
+      },
+      "required": [
+        "km",
+        "start_km",
+        "end_km"
+      ],
+      "title": "ServiceGap",
       "type": "object"
     },
     "TextSection": {
@@ -526,6 +569,21 @@
       "default": null,
       "title": "Lipas Id"
     },
+    "longest_service_gap": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "$ref": "#/$defs/ServiceGap"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Longest Service Gap"
+    },
     "maintainer": {
       "anyOf": [
         {
@@ -589,7 +647,7 @@
     "nearby_services": {
       "default": [],
       "items": {
-        "type": "string"
+        "$ref": "#/$defs/NearbyService"
       },
       "title": "Nearby Services",
       "type": "array"
@@ -681,6 +739,21 @@
       ],
       "default": null,
       "title": "Separated Share"
+    },
+    "service_gaps": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "number"
+          },
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Service Gaps"
     },
     "surface_shares": {
       "anyOf": [

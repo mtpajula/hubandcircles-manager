@@ -3,7 +3,7 @@
 from manager.schema import generate
 
 
-def test_generation_produces_six_files_deterministically(tmp_path):
+def test_generation_produces_seven_files_deterministically(tmp_path):
     paths = generate(tmp_path)
     assert sorted(p.name for p in paths) == [
         "catalog.schema.json",
@@ -11,6 +11,7 @@ def test_generation_produces_six_files_deterministically(tmp_path):
         "publishedroute.schema.json",
         "publishsettings.schema.json",
         "route.schema.json",
+        "service.schema.json",
         "theme.schema.json",
     ]
     first = {p.name: p.read_bytes() for p in paths}

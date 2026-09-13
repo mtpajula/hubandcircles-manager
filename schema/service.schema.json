@@ -1,0 +1,174 @@
+{
+  "additionalProperties": false,
+  "description": "`source:original_id`; a name is absent when the source has none (P11).",
+  "properties": {
+    "category": {
+      "enum": [
+        "cafe",
+        "restaurant",
+        "shop",
+        "accommodation",
+        "bike_repair",
+        "bike_rental",
+        "water",
+        "toilet",
+        "lean_to",
+        "hut",
+        "issue"
+      ],
+      "title": "Category",
+      "type": "string"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "minProperties": 1,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Description"
+    },
+    "fetched_at": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Fetched At"
+    },
+    "id": {
+      "title": "Id",
+      "type": "string"
+    },
+    "location": {
+      "maxItems": 2,
+      "minItems": 2,
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "title": "Location",
+      "type": "array"
+    },
+    "name": {
+      "anyOf": [
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "minProperties": 1,
+          "type": "object"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Name"
+    },
+    "opening_hours": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Opening Hours"
+    },
+    "report": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Report"
+    },
+    "reported_at": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Reported At"
+    },
+    "severity": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Severity"
+    },
+    "source": {
+      "enum": [
+        "osm",
+        "visitfinland",
+        "manual"
+      ],
+      "title": "Source",
+      "type": "string"
+    },
+    "url": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Url"
+    },
+    "valid_until": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Valid Until"
+    }
+  },
+  "required": [
+    "id",
+    "category",
+    "source",
+    "location"
+  ],
+  "title": "Service",
+  "type": "object"
+}

@@ -60,6 +60,25 @@ class PublishedSegment(Segment):
     model_config = ConfigDict(extra="ignore")
 
 
+class NearbyService(BaseModel):
+    """A service point within `nearby_services_m` of the track, at its km (5.3)."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    id: str
+    km: float
+
+
+class ServiceGap(BaseModel):
+    """The longest stretch without a service of the theme's first categories (7.11)."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    km: float
+    start_km: float
+    end_km: float
+
+
 class PublishedRoute(RouteSummary):
     """route.json (5.3). Media rule: `cover_image` is a ready path relative to the data root
     (`routes/<id>/media/cover-<hash>-400.webp`); everything else (`hardest_section.media`, gallery
@@ -69,7 +88,7 @@ class PublishedRoute(RouteSummary):
     track: str
     profile: list[tuple[float, float]]
     sections: list[Section]
-    nearby_services: list[str] = []
+    nearby_services: list[NearbyService] = []
     media: dict[str, PublishedMedia] = {}
     maintenance_url: str | None = None
     hardest_section: HardestSection | None = None
@@ -81,6 +100,10 @@ class PublishedRoute(RouteSummary):
     itrs_technical_shares: dict[str, float] | None = None
     gpx: str | None = None
     gpx_bytes: int | None = None
+    # Computed in build/routes.py from the merged services (7.11); absent without services or
+    # without a theme that lists service_categories_first (P11).
+    service_gaps: dict[str, float] | None = None  # category -> longest gap km
+    longest_service_gap: dict[str, ServiceGap] | None = None  # theme id -> gap
 
 
 class CatalogProject(BaseModel):

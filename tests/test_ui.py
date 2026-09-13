@@ -313,3 +313,47 @@ def test_themes_page_saves_theme_and_project(ui_env):
     project = json.loads((ui_env / "project.json").read_text())
     assert project["itrs_scales"] == {"exposure": 4}
     assert project["feedback"] == {"github_repo": "org/repo", "issue_form": "route-report.yml"}
+
+
+# --- Services page (ADMIN-UI-SPEC 4, OSM part) ------------------------------------------------
+
+OSM_SAMPLE = Path(__file__).parent / "fixtures" / "osm" / "overpass_sample.json"
+
+
+def test_services_page_with_empty_snapshot(ui_env):
+    at = AppTest.from_file(str(UI / "views" / "services.py"), default_timeout=10).run()
+    assert not at.exception, at.exception
+    assert [h.value for h in at.subheader] == ["OSM", "Käsin tehdyt merkinnät"]
+    assert "Ei tilannekuvaa" in [c.value for c in at.caption]
+    assert [b.label for b in at.button] == ["Hae OSM:stä"]
+    assert not at.metric and not at.dataframe
+
+
+def test_services_page_fetch_shows_diff_and_accept_writes_snapshot(ui_env, monkeypatch):
+    from manager.sources import osm
+
+    elements = json.loads(OSM_SAMPLE.read_text(encoding="utf-8"))["elements"]
+    calls = []
+    monkeypatch.setattr(osm, "fetch", lambda area, **kw: calls.append(area) or elements)
+    at = AppTest.from_file(str(UI / "views" / "services.py"), default_timeout=10).run()
+    at.button(key="osm_fetch").click().run()
+    assert not at.exception, at.exception
+    assert calls == [(25.4, 66.3, 26.2, 66.7)]
+    assert [(m.label, m.value) for m in at.metric] == [
+        ("Uusia", "+5"),
+        ("Poistuneita", "\u22120"),
+        ("Muuttuneita", "0"),
+        ("Yhteensä", "5"),
+    ]
+    table = at.dataframe[0].value
+    assert list(table.columns) == ["muutos", "nimi", "kategoria", "id"]
+    assert list(table["muutos"]) == ["uusi"] * 5
+    assert list(table["nimi"])[:2] == ["Kahvila Napa", ""]
+    assert not (ui_env / "services" / "osm.geojson").exists()  # nothing written before accept
+
+    at.button(key="osm_accept").click().run()
+    assert not at.exception, at.exception
+    assert len(osm.read_snapshot(ui_env)) == 5
+    assert at.success[0].value.startswith("Tilannekuva tallennettu: ")
+    assert not at.metric  # the fetched list is gone; the snapshot caption shows the count
+    assert any(c.value.endswith("5 pistettä") for c in at.caption)

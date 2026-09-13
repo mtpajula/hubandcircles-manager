@@ -22,6 +22,7 @@ def _check(root: Path, path: str | None, source: str) -> list[Finding]:
 def check_links(tmp_dir: Path) -> list[Finding]:
     catalog = _read(tmp_dir / "catalog.json")
     findings = _check(tmp_dir, catalog.get("overview"), "catalog.json: overview")
+    findings += _check(tmp_dir, catalog.get("services"), "catalog.json: services")
     for route in catalog.get("routes", []):
         source = f"catalog.json: route {route.get('id')}: cover_image"
         findings += _check(tmp_dir, route.get("cover_image"), source)
