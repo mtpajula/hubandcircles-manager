@@ -5,10 +5,11 @@ rewrites history in the data repo.
 """
 
 import re
-import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+
+from manager import run
 
 FALLBACK_IDENTITY = [
     "-c",
@@ -33,19 +34,10 @@ class RepoStatus:
 
 
 def _git(data_dir: Path, *args: str) -> str:
-    # Absolute executable, -C instead of cwd and close_fds=False make CPython use posix_spawn:
-    # fork() from a Streamlit script thread crashes on macOS.
-    git = shutil.which("git")
-    if git is None:
-        raise SourceRepoError("git not found")
     try:
-        result = subprocess.run(
-            [git, "-C", str(data_dir), *args],
-            check=True,
-            capture_output=True,
-            text=True,
-            close_fds=False,
-        )
+        result = run.run(["git", "-C", str(data_dir), *args], check=True)
+    except FileNotFoundError as e:
+        raise SourceRepoError("git not found") from e
     except subprocess.CalledProcessError as e:
         raise SourceRepoError(e.stderr.strip() or f"git {args[0]} failed") from e
     return result.stdout

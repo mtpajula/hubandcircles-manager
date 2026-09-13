@@ -1,5 +1,6 @@
 """Local preview server for the bundle directory. Stdlib only."""
 
+import os
 import subprocess
 import sys
 import time
@@ -10,6 +11,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import ClassVar
 
+from manager import run
 from manager.settings import ROOT
 
 LOG_FILE = ROOT / ".preview.log"  # stdout+stderr of the background preview, for the UI
@@ -51,14 +53,20 @@ def start_background(
 
     Output goes to LOG_FILE so a failure (missing frontend, port in use) can be shown."""
     command = [
-        sys.executable, "-m", "manager", "preview",
+        sys.executable, "-u", "-m", "manager", "preview",
         "--data", str(data_dir), "--dist", str(dist_dir), "--frontend", str(frontend),
         "--port", str(port), "--work-dir", str(work_dir),
     ]  # fmt: skip
     log = LOG_FILE.open("w", encoding="utf-8")
     log.write(" ".join(command) + "\n")
     log.flush()
-    return subprocess.Popen(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
+    # PYTHONPATH instead of cwd (manager.run explains why); the fault handler leaves a traceback
+    # in the log if a native library crashes.
+    env = {**os.environ, "PYTHONPATH": str(ROOT), "PYTHONFAULTHANDLER": "1"}
+    process = run.popen(command, stdout=log, stderr=subprocess.STDOUT, env=env)
+    log.write(f"pid {process.pid}\n")
+    log.close()
+    return process
 
 
 def wait_ready(port: int, process: subprocess.Popen, timeout_s: float = 10) -> bool:

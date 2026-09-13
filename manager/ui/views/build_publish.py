@@ -77,8 +77,9 @@ with preview_column:
             if preview.wait_ready(PREVIEW_PORT, started):
                 st.session_state["preview_process"] = started
                 st.rerun()
+            exit_code = started.poll()
             preview.stop(started)
-            st.error(texts.PREVIEW_FAILED)
+            st.error(f"{texts.PREVIEW_FAILED} (exit {exit_code})")
             st.code(preview.log_tail())
     else:
         st.success(texts.PREVIEW_RUNNING.format(url=PREVIEW_URL))

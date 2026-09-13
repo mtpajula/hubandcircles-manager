@@ -11,6 +11,7 @@ import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 
+from manager import run
 from manager.models import Target
 from manager.publish.bundle import Bundle
 from manager.publish.errors import PublishError
@@ -37,7 +38,7 @@ def remote_url(target: Target) -> str:
 def _git(target: Target, cwd: Path, *args: str) -> None:
     token = env("GITHUB_TOKEN")
     try:
-        subprocess.run(["git", *args], check=True, capture_output=True, text=True, cwd=cwd)
+        run.run(["git", "-C", str(cwd), *args], check=True)
     except FileNotFoundError as e:
         raise PublishError("git not found") from e
     except subprocess.CalledProcessError as e:
