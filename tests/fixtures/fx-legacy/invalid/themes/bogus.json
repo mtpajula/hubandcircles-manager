@@ -1,0 +1,7 @@
+{
+  "id": "bogus",
+  "name": { "fi": "Virheellinen", "en": "Bogus" },
+  "order": 6,
+  "colors": { "primary": "#3F6B4A", "route": "#3F6B4A", "highlight": "#E8A33D" },
+  "presentation": { "key_figures": ["speed"] }
+}

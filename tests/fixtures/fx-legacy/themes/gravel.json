@@ -1,0 +1,41 @@
+{
+  "id": "gravel",
+  "name": {
+    "fi": "Gravel",
+    "en": "Gravel"
+  },
+  "tagline": {
+    "fi": "Sorateitä ja metsäautoteitä",
+    "en": "Gravel and forest roads"
+  },
+  "order": 3,
+  "colors": {
+    "primary": "#8F5D12",
+    "route": "#8F5D12",
+    "highlight": "#E8A33D"
+  },
+  "dark": false,
+  "default_layers": [],
+  "presentation": {
+    "key_figures": [
+      "length",
+      "ascent",
+      "surface_shares",
+      "itrs_endurance"
+    ],
+    "band": [
+      "elevation",
+      "surface"
+    ],
+    "hero_image": "cover_image",
+    "filters": [
+      "length",
+      "dominant_surface"
+    ],
+    "service_categories_first": [
+      "cafe",
+      "water",
+      "shop"
+    ]
+  }
+}

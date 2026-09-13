@@ -1,0 +1,7 @@
+{
+  "id": "bare",
+  "name": { "fi": "Paljas reitti", "en": "Bare route" },
+  "themes": ["mtb"],
+  "seasons": ["summer"],
+  "track": "track.gpx"
+}

@@ -1,0 +1,41 @@
+{
+  "id": "road",
+  "name": {
+    "fi": "Maantie",
+    "en": "Road"
+  },
+  "tagline": {
+    "fi": "Asfaltti ja pyörätiet",
+    "en": "Asphalt and cycle paths"
+  },
+  "order": 4,
+  "colors": {
+    "primary": "#A8323E",
+    "route": "#A8323E",
+    "highlight": "#E8A33D"
+  },
+  "dark": false,
+  "default_layers": [],
+  "presentation": {
+    "key_figures": [
+      "length",
+      "ascent",
+      "separated_share",
+      "dominant_surface"
+    ],
+    "band": [
+      "elevation",
+      "traffic",
+      "surface"
+    ],
+    "hero_image": "cover_image",
+    "filters": [
+      "length",
+      "separated_share"
+    ],
+    "service_categories_first": [
+      "cafe",
+      "bike_repair"
+    ]
+  }
+}

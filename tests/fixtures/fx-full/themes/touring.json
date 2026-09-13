@@ -1,0 +1,42 @@
+{
+  "id": "touring",
+  "name": {
+    "fi": "Retki",
+    "en": "Touring"
+  },
+  "tagline": {
+    "fi": "Monen päivän etapit",
+    "en": "Multi-day stages"
+  },
+  "order": 5,
+  "colors": {
+    "primary": "#3F6B4A",
+    "route": "#3F6B4A",
+    "highlight": "#E8A33D"
+  },
+  "dark": false,
+  "default_layers": [],
+  "presentation": {
+    "key_figures": [
+      "length",
+      "longest_service_gap",
+      "itrs_wilderness",
+      "ascent"
+    ],
+    "band": [
+      "elevation",
+      "surface"
+    ],
+    "hero_image": "cover_image",
+    "filters": [
+      "length",
+      "difficulty"
+    ],
+    "service_categories_first": [
+      "accommodation",
+      "water",
+      "shop",
+      "lean_to"
+    ]
+  }
+}

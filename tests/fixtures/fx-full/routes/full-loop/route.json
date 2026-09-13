@@ -1,0 +1,42 @@
+{
+  "id": "full-loop",
+  "name": { "fi": "Täysi lenkki", "en": "Full loop" },
+  "themes": ["mtb", "winter", "road"],
+  "seasons": ["summer", "winter"],
+  "difficulty": "demanding",
+  "track": "track.gpx",
+  "cover_image": "media/cover.jpg",
+  "itrs": {
+    "technical": "red",
+    "endurance": "blue",
+    "exposure": 1,
+    "wilderness": 2,
+    "assessed_by": "M. Pajula",
+    "assessed_on": "2026-08-14"
+  },
+  "winter_maintenance": "groomed",
+  "maintenance_url": "https://example.test/maintenance",
+  "hardest_section": {
+    "media": "media/rocky-descent.jpg",
+    "description": { "fi": "Kivikkoinen lasku.", "en": "Rocky descent." }
+  },
+  "segments": [
+    { "start_km": 0.0, "end_km": 0.5, "surface": "asphalt", "traffic": "separated", "itrs_technical": "green" },
+    { "start_km": 0.5, "end_km": 1.0, "surface": "gravel", "traffic": "quiet", "itrs_technical": "blue" },
+    { "start_km": 1.1, "end_km": 1.3, "surface": "trail", "traffic": "quiet", "itrs_technical": "red" }
+  ],
+  "maintainer": "non_municipal",
+  "lipas_id": null,
+  "non_municipal_reasons": ["private_road_no_permission", "unmarked"],
+  "maintenance_note": { "fi": "Yksityistie km 0–0,5.", "en": "Private road at km 0–0.5." },
+  "sections": [
+    { "type": "text", "content": { "fi": "Kaikki kentät täytetty.", "en": "Every field filled." } },
+    { "type": "gallery", "media": ["media/cover.jpg", "media/rocky-descent.jpg"] },
+    { "type": "video", "url": "https://www.youtube.com/watch?v=abc123XYZ00" },
+    { "type": "elevation_profile" }
+  ],
+  "media": {
+    "media/cover.jpg": { "author": "M. Pajula", "license": "CC BY 4.0" },
+    "media/rocky-descent.jpg": { "author": "M. Pajula", "license": "CC BY 4.0" }
+  }
+}

@@ -114,7 +114,7 @@ class Route(BaseModel):
     id: str
     name: LangText
     themes: list[str]
-    seasons: list[Season]
+    seasons: list[Season] = []  # a card without seasons shows none (P11)
     # None = not assessed (P11); an imported route starts without one.
     difficulty: Difficulty | None = None
     track: str = "track.gpx"

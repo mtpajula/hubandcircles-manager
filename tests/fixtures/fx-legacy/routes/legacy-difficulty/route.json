@@ -1,0 +1,25 @@
+{
+  "id": "legacy-difficulty",
+  "name": {
+    "fi": "Vanha vaativuus",
+    "en": "Legacy difficulty"
+  },
+  "themes": [
+    "touring"
+  ],
+  "seasons": [
+    "summer"
+  ],
+  "difficulty": "keskivaikea",
+  "track": "track.gpx",
+  "segments": [
+    {
+      "start_km": 0.0,
+      "end_km": 1.3,
+      "surface": "gravel"
+    }
+  ],
+  "itrs": {
+    "wilderness": 2
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "id": "half-covered",
+  "name": { "fi": "Puoliksi tunnettu", "en": "Half known" },
+  "themes": ["road"],
+  "seasons": ["summer"],
+  "track": "track.gpx",
+  "segments": [
+    { "start_km": 0.0, "end_km": 0.65, "surface": "asphalt", "traffic": "separated" }
+  ]
+}

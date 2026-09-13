@@ -1,0 +1,10 @@
+{
+  "name": { "fi": "Testiprojekti", "en": "Test project" },
+  "subtitle": { "fi": "pyöräillen testialueella", "en": "cycling the test area" },
+  "area": [25.40, 66.30, 26.20, 66.70],
+  "languages": ["fi", "en"],
+  "default_language": "fi",
+  "default_theme": "gravel",
+  "nearby_services_m": 500,
+  "itrs_scales": { "exposure": null, "wilderness": null }
+}

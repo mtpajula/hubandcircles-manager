@@ -1,0 +1,8 @@
+{
+  "id": "no-reasons",
+  "name": { "fi": "Ilman syitä", "en": "Without reasons" },
+  "themes": ["touring"],
+  "seasons": ["summer"],
+  "track": "track.gpx",
+  "maintainer": "non_municipal"
+}

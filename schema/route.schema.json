@@ -462,6 +462,7 @@
       "type": "array"
     },
     "seasons": {
+      "default": [],
       "items": {
         "enum": [
           "spring",
@@ -545,8 +546,7 @@
   "required": [
     "id",
     "name",
-    "themes",
-    "seasons"
+    "themes"
   ],
   "title": "Route",
   "type": "object"

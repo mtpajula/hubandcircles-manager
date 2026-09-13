@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="hubandcircles-manager fixture" xmlns="http://www.topografix.com/GPX/1/1">
+  <trk>
+    <name>Testilenkki</name>
+    <trkseg>
+      <trkpt lat="66.5000" lon="25.7200"><ele>100</ele></trkpt>
+      <trkpt lat="66.5010" lon="25.7210"><ele>105</ele></trkpt>
+      <trkpt lat="66.5020" lon="25.7230"><ele>112</ele></trkpt>
+      <trkpt lat="66.5025" lon="25.7260"><ele>118</ele></trkpt>
+      <trkpt lat="66.5020" lon="25.7290"><ele>115</ele></trkpt>
+      <trkpt lat="66.5010" lon="25.7300"><ele>120</ele></trkpt>
+      <trkpt lat="66.5000" lon="25.7290"><ele>126</ele></trkpt>
+      <trkpt lat="66.4990" lon="25.7260"><ele>120</ele></trkpt>
+      <trkpt lat="66.4990" lon="25.7225"><ele>110</ele></trkpt>
+      <trkpt lat="66.5001" lon="25.7202"><ele>100</ele></trkpt>
+    </trkseg>
+  </trk>
+</gpx>
