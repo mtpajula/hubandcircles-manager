@@ -122,7 +122,11 @@ if not settings.targets:
 selected = [
     t.id
     for t in settings.targets
-    if st.checkbox(f"{t.id} · {t.type}", value=True, key=f"target_{t.id}")
+    if st.checkbox(
+        " · ".join(filter(None, [t.id, t.type, t.repo, t.project, t.path])),
+        value=True,
+        key=f"target_{t.id}",
+    )
 ]
 if st.button(texts.BUTTON_PUBLISH, type="primary", key="publish", disabled=not settings.targets):
     if not selected:
