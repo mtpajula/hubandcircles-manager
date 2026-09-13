@@ -28,13 +28,25 @@ SIDEBAR_NO_PUBLISH = "Ei vielä julkaistu"
 DATA_DIR_MISSING = "Lähdedata puuttuu: aseta DATA_DIR .env-tiedostoon."
 CLI_EQUIVALENT = "Komentorivillä: `{command}`"
 
-# Build & publish page
-BUILD_HEADER = "Build"
+# Build & publish page (ADMIN-UI-SPEC section 7)
+BUILD_PUBLISH_INTRO = (
+    "Muutokset syntyvät Reitit- ja Teemat-sivuilla lähdedataan (`hubandcircles-data`). Build tekee "
+    "niistä julkaisudatan, esikatselu näyttää sen sivuston kanssa, ja julkaisu vie paketin "
+    "sivustolle ja lähdedatan GitHubiin."
+)
+BUILD_FIRST = "Aja build ensin"
+
+STEP_BUILD_HEADER = "1 · Build"
+STEP_BUILD_INTRO = (
+    "Lähdedata → julkaisudata (`dist/`). Tarkistaa skeeman, linkit, viittaukset, käännökset ja "
+    "avainvuodot; virhe pysäyttää."
+)
 BUTTON_BUILD = "Aja build"
 BUILD_RUNNING = "Build käynnissä…"
 BUILD_DONE = "Build valmis"
 BUILD_FAILED = "Build keskeytyi, dist/ ennallaan"
 BUILD_FINISHED_AT = "Valmistui {time} · {seconds} s"
+BUILD_PREVIOUS = "Edellinen build {when}"
 METRIC_ROUTES = "Reittejä"
 METRIC_FIRST_VISIT = "Ensikäynti"
 METRIC_WARNINGS = "Varoituksia"
@@ -50,38 +62,45 @@ CHECK_PASSED = "✓ {name}"
 CHECK_WARNING = "! {name} · {count} varoitusta"
 CHECK_SHOW = "Näytä"
 
-PREVIEW_HEADER = "Esikatselu"
-BUTTON_PREVIEW = "Esikatsele paikallisesti"
+STEP_PREVIEW_HEADER = "2 · Esikatselu"
+STEP_PREVIEW_INTRO = (
+    "Näyttää julkaisudatan yhdessä frontend-buildin kanssa paikallisesti; tämä on täsmälleen se "
+    "paketti, joka julkaistaan."
+)
+BUTTON_PREVIEW = "Käynnistä esikatselu"
+BUTTON_PREVIEW_OPEN = "Avaa esikatselu"
 BUTTON_PREVIEW_STOP = "Pysäytä esikatselu"
-PREVIEW_RUNNING = "Esikatselu käynnissä: {url}"
 PREVIEW_STOPPED = "Esikatselu pysäytetty."
 PREVIEW_FAILED = "Esikatselu keskeytyi."
-FRONTEND_MISSING = (
-    "Frontend-buildia ei löydy: {path}. Buildaa frontend: `cd hubandcircles-ui && npm run build`"
-)
+PREVIEW_KEEPS_RUNNING = "Esikatselu jää käyntiin kunnes pysäytät sen tai suljet Streamlitin."
+FRONTEND_MISSING = "Buildaa frontend: `cd hubandcircles-ui && npm run build`"
 
-PUBLISH_HEADER = "Julkaisukohteet"
+STEP_PUBLISH_HEADER = "3 · Julkaise"
+STEP_PUBLISH_INTRO = (
+    "Vie paketin (frontend + `data/`) julkaisukohteisiin ja tallentaa lähdedatan GitHubiin, jotta "
+    "sivusto ja data ovat samassa tilassa."
+)
 FRONTEND_CAPTION = "Frontend: {frontend}"
 FRONTEND_PINNED = "{repo} v{version} (kiinnitetty publish.json-tiedostossa)"
-NO_TARGETS = "Ei julkaisukohteita publish.json-tiedostossa."
-BUTTON_PUBLISH = "Julkaise valittuihin kohteisiin"
-PUBLISH_NO_SELECTION = "Valitse vähintään yksi kohde."
-PUBLISH_RUNNING = "Julkaisu käynnissä…"
-PUBLISH_DONE = "Julkaistu"
-PUBLISH_FAILED = "Julkaisu keskeytyi"
-PUBLISHED_TO = "Julkaistu:"
-
-SOURCE_REPO_HEADER = "Lähdedata"
+NO_TARGETS = "Ei julkaisukohteita"
 SOURCE_REPO_STATUS = (
-    "{name} · haara {branch} · {changed} muutosta commitoimatta · {ahead} pushaamatta"
+    "Lähdedata: {name} · haara {branch} · {changed} muutosta commitoimatta · {ahead} pushaamatta"
 )
+SOURCE_REPO_CLEAN = "Lähdedata on jo GitHubissa"
+SAVE_SOURCE_DATA = "Tallenna lähdedata GitHubiin (commit + push)"
 COMMIT_MESSAGE_LABEL = "Commit-viesti"
 COMMIT_MESSAGE_DEFAULT = "Update route data"
-BUTTON_COMMIT_PUSH = "Commitoi ja pushaa lähdedata"
-COMMIT_RUNNING = "Commit ja push käynnissä…"
-COMMIT_DONE = "Lähdedata pushattu"
-COMMIT_FAILED = "Commit tai push epäonnistui"
-COMMIT_NOTHING = "Ei commitoitavaa."
+BUTTON_PUBLISH = "Julkaise"
+PUBLISH_RUNNING = "Julkaisu käynnissä…"
+PUBLISH_DONE = "Julkaisu valmis"
+PUBLISH_FAILED = "Julkaisu keskeytyi"
+PUBLISH_BUNDLE_LINE = "Paketti koottu: {files} tiedostoa, {mib} MiB"
+PUBLISH_SOURCE_LINE = "Lähdedata: {sha} pushattu"
+PUBLISH_SOURCE_NOTHING = "Lähdedata: ei muutoksia"
+PUBLISHED_AT = "Julkaistu {time}"
+BUTTON_OPEN_SITE = "Avaa sivusto"
+PAGES_UPDATES_SOON = "GitHub Pages päivittyy noin minuutissa."
+CLI_EQUIVALENT_BOTH = "Komentorivillä: `{first}` ja `{second}`"
 
 # Shared
 SOURCE_DATA_BROKEN = "Lähdedata ei kelpaa: {error}"

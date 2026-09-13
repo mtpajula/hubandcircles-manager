@@ -69,7 +69,7 @@ def _identity(data_dir: Path) -> list[str]:
 
 
 def commit_and_push(data_dir: Path, message: str) -> str:
-    """git add -A, commit, push. Returns a one-line summary; "nothing to commit" when clean."""
+    """git add -A, commit, push. Returns the short commit hash; "nothing to commit" when clean."""
     _git(data_dir, "add", "-A")
     if not _git(data_dir, "status", "--porcelain").strip():
         return "nothing to commit"
@@ -78,4 +78,4 @@ def commit_and_push(data_dir: Path, message: str) -> str:
     )
     sha = _git(data_dir, "rev-parse", "--short", "HEAD").strip()
     _git(data_dir, "push", "-q")
-    return f"committed {sha} and pushed {status(data_dir).branch}"
+    return sha

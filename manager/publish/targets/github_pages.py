@@ -35,6 +35,14 @@ def remote_url(target: Target) -> str:
     return f"https://{auth}github.com/{target.repo}.git"
 
 
+def site_url(target: Target) -> str | None:
+    """Public URL of the published site, https://<owner>.github.io/<repo>/; None without a repo."""
+    if not target.repo or "/" not in target.repo:
+        return None
+    owner, _, repo = target.repo.partition("/")
+    return f"https://{owner}.github.io/{repo}/"
+
+
 def _git(target: Target, cwd: Path, *args: str) -> None:
     token = env("GITHUB_TOKEN")
     try:

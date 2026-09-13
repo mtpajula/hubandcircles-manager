@@ -30,14 +30,32 @@ def test_app_shell_runs(ui_env):
     assert at.sidebar.title[0].value == "Napa ja piirit"
 
 
-def test_build_button_builds_fixture(ui_env, tmp_path, monkeypatch):
-    monkeypatch.setattr("manager.settings.ROOT", tmp_path)  # dist/ goes to tmp, not the repo
-    at = AppTest.from_file(str(UI / "views" / "build_publish.py"), default_timeout=10).run()
+@pytest.fixture
+def build_page(ui_env, tmp_path, monkeypatch):
+    """The build page with dist/ and .state.json under tmp, not the repo."""
+    import manager.build  # noqa: F401 – bind ROOT-based defaults (.env.example) before patching
+
+    monkeypatch.setattr("manager.settings.ROOT", tmp_path)
+    monkeypatch.setattr("manager.state.STATE_FILE", tmp_path / ".state.json")
+    return AppTest.from_file(str(UI / "views" / "build_publish.py"), default_timeout=10)
+
+
+def test_build_page_shows_three_steps(build_page):
+    at = build_page.run()
+    assert not at.exception, at.exception
+    assert [h.value for h in at.subheader] == ["1 · Build", "2 · Esikatselu", "3 · Julkaise"]
+    assert [b.label for b in at.button] == ["Aja build", "Käynnistä esikatselu", "Julkaise"]
+
+
+def test_build_button_builds_fixture(build_page, tmp_path):
+    at = build_page.run()
+    assert not at.metric
     at.button(key="build").click().run()
     assert not at.exception, at.exception
     assert [m.label for m in at.metric] == ["Reittejä", "Ensikäynti", "Varoituksia"]
     assert at.metric[0].value == "1"
     assert (tmp_path / "dist" / "catalog.json").is_file()
+    assert (tmp_path / ".state.json").is_file()
     assert [m.value for m in at.markdown if m.value.startswith(("\u2713", "!"))] == [
         "\u2713 Skeema",
         "\u2713 Linkit",
@@ -45,6 +63,30 @@ def test_build_button_builds_fixture(ui_env, tmp_path, monkeypatch):
         "\u2713 K\u00e4\u00e4nn\u00f6kset",
         "\u2713 Avainvuodot",
     ]
+
+
+def test_publish_button_waits_for_a_fresh_build(build_page, ui_env, frontend):
+    # Relative paths: an absolute one would repeat DATA_DIR, which the secrets check rejects.
+    (ui_env / "publish.json").write_text(
+        json.dumps(
+            {
+                "frontend": {"path": "../frontend"},
+                "targets": [{"id": "local", "type": "directory", "path": "../out"}],
+                "headers": [],
+            }
+        )
+    )
+    at = build_page.run()
+    assert not at.exception, at.exception
+    assert at.checkbox(key="target_local").label == "local · directory · ../out"
+    assert f"Frontend: {frontend}" in [c.value for c in at.caption]
+    assert at.button(key="publish").disabled and at.button(key="preview_start").disabled
+    assert [c.value for c in at.caption if c.value == "Aja build ensin"] == ["Aja build ensin"] * 2
+
+    at.button(key="build").click().run()
+    assert not at.exception, at.exception
+    assert not at.button(key="publish").disabled and not at.button(key="preview_start").disabled
+    assert not [c for c in at.caption if c.value == "Aja build ensin"]
 
 
 def test_routes_page_form_metrics_and_table(ui_env):

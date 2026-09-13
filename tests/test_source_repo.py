@@ -51,11 +51,10 @@ def test_commit_and_push(repo, monkeypatch):
     monkeypatch.setenv("GIT_CONFIG_GLOBAL", "/dev/null")  # no user.name → fallback identity
     assert commit_and_push(repo, "Update route data") == "nothing to commit"
     (repo / "routes.json").write_text("[]\n")
-    line = commit_and_push(repo, "Update route data")
-    assert line.startswith("committed ") and line.endswith(" and pushed main")
+    sha = commit_and_push(repo, "Update route data")
     assert status(repo) == source_repo.RepoStatus(changed=0, branch="main", ahead=0)
-    log = _git("-C", str(repo), "log", "-1", "--format=%s%n%an")
-    assert log.split("\n")[:2] == ["Update route data", "hubandcircles-manager"]
+    log = _git("-C", str(repo), "log", "-1", "--format=%h%n%s%n%an")
+    assert log.split("\n")[:3] == [sha, "Update route data", "hubandcircles-manager"]
 
 
 @needs_git

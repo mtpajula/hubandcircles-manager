@@ -14,7 +14,7 @@ from manager.build.read import read_source_data
 from manager.build.routes import process_route, published_route
 from manager.validate import CHECKS, check_all
 
-__all__ = ["BuildError", "BuildReport", "build"]
+__all__ = ["BuildError", "BuildReport", "build", "is_stale"]
 
 
 @dataclass
@@ -93,4 +93,19 @@ def build(data_dir: Path, dist_dir: Path) -> BuildReport:
         first_visit_bytes=first_visit,
         warnings=[x.message for x in warnings],
         warnings_by_check={c: [x.message for x in warnings if x.check == c] for c in CHECKS},
+    )
+
+
+def is_stale(data_dir: Path, dist_dir: Path) -> bool:
+    """True when dist/catalog.json is missing or older than the newest file under data_dir.
+
+    `.git/` is ignored: a commit touches it without changing the content."""
+    catalog = dist_dir / "catalog.json"
+    if not catalog.is_file():
+        return True
+    built = catalog.stat().st_mtime
+    return any(
+        p.is_file() and p.stat().st_mtime > built
+        for p in data_dir.rglob("*")
+        if ".git" not in p.relative_to(data_dir).parts
     )

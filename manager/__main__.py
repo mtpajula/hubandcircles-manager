@@ -11,7 +11,7 @@ from manager.publish.preview import serve
 from manager.schema import generate
 from manager.settings import ROOT, load_env
 from manager.sources import lipas
-from manager.state import mark_published
+from manager.state import mark_built, mark_published
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -31,6 +31,7 @@ def main(argv: list[str] | None = None) -> int:
         except BuildError as e:
             print(f"Build aborted, dist/ unchanged:\n{e}", file=sys.stderr)
             return 1
+        mark_built()
         print(report.text())
         return 0
     if args.command == "publish":

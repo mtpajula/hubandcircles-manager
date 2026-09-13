@@ -64,3 +64,8 @@ def test_remote_url_with_and_without_token(monkeypatch):
     assert github_pages.remote_url(TARGET) == "https://github.com/owner/site.git"
     monkeypatch.setenv("GITHUB_TOKEN", "tok")
     assert github_pages.remote_url(TARGET) == "https://x-access-token:tok@github.com/owner/site.git"
+
+
+def test_site_url():
+    assert github_pages.site_url(TARGET) == "https://owner.github.io/site/"
+    assert github_pages.site_url(Target(id="pages", type="github-pages")) is None

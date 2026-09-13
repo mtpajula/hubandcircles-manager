@@ -160,27 +160,51 @@ Two rows of `st.columns`:
 
 ## 7. Build ja julkaisu (build & publish)
 
-- Buttons: primary "Aja build", secondary "Esikatsele paikallisesti"; caption "Valmistui <time> ·
-  42 s".
-- "Tarkistukset" list with icons: ✓ passed (green), ! warning (amber, with "Näytä" expander listing
-  items), i info. Order and wording follow ARKKITEHTUURI §7.2, e.g. "Skeema · 61 tiedostoa,
-  schema_version ennallaan", "Enum-arvot · vaativuus, pinta, liikenne, ITRS, ylläpito",
-  "Segmentit · järjestys ja rajat, 18 reittiä", "Teemojen esitys-tunnisteet · 5 teemaa",
-  "Vaativimman kohdan media löytyy · 11 reittiä", "Ylläpidon syyt · jokaisella non_municipal-reitillä
-  vähintään yksi", "! ITRS puuttuu · 4 reittiä teemassa, jonka avainluvuissa se on",
-  "! Segmenttikattavuus alle 80 % · 3 reittiä", "! Käännökset · en puuttuu 2 kohteesta",
-  "i Vanha arvo keskivaikea normalisoitiin · 2 reittiä", "Teemavärien kontrasti · 5 teemaa",
-  "Avainvuodot ja linkit", "Kohteen rajat · Cloudflare Pages, GitHub Pages".
-- "Esitystavan kattavuus teemoittain" table: teema | itrs | segmentit | vaativin | palveluvälit,
-  cells "5 / 6" green when complete, amber when partial, grey "ei tarvita" when the theme's
-  presentation does not use the field.
-- `st.metric` row: Paketin koko "248 MB", Tiedostoja "9 412", Ensikäynti "3,1 MB"; caption
-  "Mahtuu molempien kohteiden rajoihin. Cloudflaren 20 000 tiedoston rajasta käytössä 47 %."
-- "Julkaisukohteet": checkboxes from `publish.json` targets (pää / vara), disabled ones greyed;
-  caption "Frontend: hubandcircles-ui v1.4.0 (kiinnitetty publish.json-tiedostossa)".
-- Primary "Julkaise valittuihin kohteisiin".
-- "Edellinen hostitarkistus": ✓ catalog.json vastaa pakettia · ✓ Tiili z14/… haettu · ✓ Range-pyyntö
-  palautti 206 · ✓ Välimuistiotsakkeet kunnossa.
+The page is a three-step workflow, top to bottom, each step in its own `st.container(border=True)`
+with a numbered header and one sentence saying what happens and where. Every step names its CLI
+equivalent in a caption. Steps that are not ready yet are shown but their buttons are disabled
+with the reason in a caption (never hidden).
+
+**Intro caption** (under the title): "Muutokset syntyvät Reitit- ja Teemat-sivuilla lähdedataan
+(`hubandcircles-data`). Build tekee niistä julkaisudatan, esikatselu näyttää sen sivuston kanssa,
+ja julkaisu vie paketin sivustolle ja lähdedatan GitHubiin."
+
+**1 · Build** – "Lähdedata → julkaisudata (`dist/`). Tarkistaa skeeman, linkit, viittaukset,
+käännökset ja avainvuodot; virhe pysäyttää." Primary button "Aja build" with `st.status`. After
+success: caption "Valmistui <HH:MM:SS> · N s", `st.metric` row Reittejä / Ensikäynti / Varoituksia,
+and the "Tarkistukset" list: ✓ per passed check, "! <check> · N varoitusta" with a "Näytä"
+expander listing the messages. On `BuildError`: the error list. Only checks that exist are listed.
+Sidebar/state: the time of the last successful build is kept in `.state.json` and shown as caption
+"Edellinen build <time>" when the button has not been pressed in this session.
+
+**2 · Esikatselu** – "Näyttää julkaisudatan yhdessä frontend-buildin kanssa paikallisesti; tämä on
+täsmälleen se paketti, joka julkaistaan." Button "Käynnistä esikatselu" (disabled with caption
+"Aja build ensin" when no build has succeeded since the data changed – compare `dist/`'s
+`catalog.json` mtime with the newest mtime under `DATA_DIR`), starts `python -m manager preview`
+in the background, waits until it answers, then shows `st.link_button("Avaa esikatselu",
+url)` (new tab) and "Pysäytä esikatselu". If it does not answer: `st.error` + the log tail.
+Frontend missing → warning "Buildaa frontend: cd hubandcircles-ui && npm run build" and the
+button disabled. Caption: "Esikatselu jää käyntiin kunnes pysäytät sen tai suljet Streamlitin."
+
+**3 · Julkaise** – "Vie paketin (frontend + `data/`) julkaisukohteisiin ja tallentaa lähdedatan
+GitHubiin, jotta sivusto ja data ovat samassa tilassa." Contents:
+- Targets as checkboxes from `publish.json` (label `<id> · <type> · <repo|project|path>`) and the
+  caption "Frontend: <path>".
+- "Lähdedata: <repo> · haara <branch> · N muutosta commitoimatta · M pushaamatta"; when N+M > 0 a
+  checkbox "Tallenna lähdedata GitHubiin (commit + push)" checked by default and a text input
+  "Commit-viesti" (default "Update route data"); when 0 the caption "Lähdedata on jo GitHubissa".
+- Primary button "Julkaise" (disabled with caption "Aja build ensin" under the same rule as step
+  2; disabled with "Ei julkaisukohteita" when none is selected). Runs inside one `st.status` with
+  a line per sub-step: "Paketti koottu: N tiedostoa, X MiB", "pages: pushed to <repo> gh-pages",
+  "Lähdedata: <commit hash> pushattu" (or "ei muutoksia"). Order: publish the site first, then
+  commit and push the data – a failed site publish must not leave the data repo ahead of the
+  site. On success: `st.success` "Julkaistu <time>" with `st.link_button` to the site URL when the
+  target is `github-pages` (`https://<owner>.github.io/<repo>/`), caption "GitHub Pages päivittyy
+  noin minuutissa." On error: `st.error` with the message; the sub-steps already done stay listed.
+- Caption with both CLI equivalents: `python -m manager publish --target …` and
+  `git -C <DATA_DIR> add -A && git commit -m "…" && git push`.
+
+Not on this page yet (V5): coverage table, target-limit percentages, host check.
 
 ## 8. Rules
 
