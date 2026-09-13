@@ -31,6 +31,7 @@ def build_parser() -> argparse.ArgumentParser:
     _data_and_dist(e)
     e.add_argument("--frontend", type=Path, help="frontend directory or zip")
     e.add_argument("--port", type=int, default=8765)
+    e.add_argument("--work-dir", type=Path, default=ROOT, help="where bundle/ is assembled")
 
     li = subcommands.add_parser("import-lipas", help="Lipas register → sources/lipas.geojson")
     li.add_argument("--data", type=Path, default=env("DATA_DIR"), help="source data root")

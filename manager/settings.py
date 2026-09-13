@@ -21,3 +21,9 @@ def load_env(path: Path = ROOT / ".env") -> None:
 def env(name: str, default: str | None = None) -> str | None:
     """Value of an environment variable; an empty value (as in .env.example) counts as missing."""
     return os.environ.get(name) or default
+
+
+def data_dir() -> Path | None:
+    """DATA_DIR as a path; a relative value is resolved against the repo root, not the cwd."""
+    value = env("DATA_DIR")
+    return (ROOT / value).resolve() if value else None

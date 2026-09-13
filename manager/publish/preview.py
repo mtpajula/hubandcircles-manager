@@ -1,9 +1,13 @@
 """Local preview server for the bundle directory. Stdlib only."""
 
+import subprocess
+import sys
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import ClassVar
+
+from manager.settings import ROOT
 
 
 class _Handler(SimpleHTTPRequestHandler):
@@ -28,3 +32,30 @@ def serve(directory: Path, port: int = 8765) -> None:
             server.serve_forever()
         except KeyboardInterrupt:
             print()
+
+
+def start_background(
+    data_dir: Path,
+    dist_dir: Path,
+    frontend: Path,
+    port: int = 8765,
+    work_dir: Path = ROOT,
+) -> subprocess.Popen:
+    """Run `python -m manager preview` as a child process; the caller keeps the handle."""
+    command = [
+        sys.executable, "-m", "manager", "preview",
+        "--data", str(data_dir), "--dist", str(dist_dir), "--frontend", str(frontend),
+        "--port", str(port), "--work-dir", str(work_dir),
+    ]  # fmt: skip
+    return subprocess.Popen(command, cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def stop(process: subprocess.Popen) -> None:
+    """Terminate the preview started with start_background() and wait for it to exit."""
+    if process.poll() is None:
+        process.terminate()
+        try:
+            process.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            process.kill()
+            process.wait()

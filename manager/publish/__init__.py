@@ -10,8 +10,9 @@ from manager.publish.bundle import Bundle, assemble
 from manager.publish.errors import PublishError
 from manager.publish.limits import check_limits
 from manager.publish.targets import directory, github_pages
+from manager.settings import ROOT
 
-__all__ = ["Bundle", "PublishError", "publish", "read_settings"]
+__all__ = ["Bundle", "PublishError", "frontend_path", "publish", "read_settings"]
 
 # ponytail: directory and github-pages only; cloudflare-pages, azure-swa and firebase in V4.
 ADAPTERS = {"directory": directory.publish, "github-pages": github_pages.publish}
@@ -26,6 +27,13 @@ def read_settings(data_dir: Path) -> PublishSettings:
         return PublishSettings.model_validate_json(path.read_bytes())
     except ValidationError as e:
         raise PublishError(f"{path}: {e}") from e
+
+
+def frontend_path(data_dir: Path, settings: PublishSettings) -> Path:
+    """frontend.path from publish.json, else the sibling ui repo's dist/ (may not exist)."""
+    if settings.frontend.path:
+        return (data_dir / settings.frontend.path).resolve()
+    return ROOT.parent / "hubandcircles-ui" / "dist"
 
 
 def _select(settings: PublishSettings, target_ids: list[str] | None) -> list[Target]:

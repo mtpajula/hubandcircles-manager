@@ -12,7 +12,7 @@ from manager.build.errors import BuildError
 from manager.build.overview import overview
 from manager.build.read import read_source_data
 from manager.build.routes import process_route, published_route
-from manager.validate import check_all
+from manager.validate import CHECKS, check_all
 
 __all__ = ["BuildError", "BuildReport", "build"]
 
@@ -22,6 +22,7 @@ class BuildReport:
     route_count: int
     first_visit_bytes: int
     warnings: list[str] = field(default_factory=list)
+    warnings_by_check: dict[str, list[str]] = field(default_factory=dict)  # every CHECKS key
 
     def text(self) -> str:
         lines = [
@@ -86,8 +87,10 @@ def build(data_dir: Path, dist_dir: Path) -> BuildReport:
     # ponytail: V0 first visit = catalog + overview; V1–V3 add images and basemap tiles.
     first_visit = sum((tmp / n).stat().st_size for n in ("catalog.json", "overview.geojson"))
     _swap(tmp, dist_dir)
+    warnings = [x for x in findings if x.level == "warning"]
     return BuildReport(
         route_count=len(published),
         first_visit_bytes=first_visit,
-        warnings=[x.message for x in findings if x.level == "warning"],
+        warnings=[x.message for x in warnings],
+        warnings_by_check={c: [x.message for x in warnings if x.check == c] for c in CHECKS},
     )

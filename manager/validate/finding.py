@@ -8,3 +8,4 @@ from typing import Literal
 class Finding:
     level: Literal["error", "warning"]
     message: str
+    check: str = ""  # key in manager.validate.CHECKS, set by check_all()

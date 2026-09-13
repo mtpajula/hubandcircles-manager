@@ -11,6 +11,7 @@ from manager.publish.preview import serve
 from manager.schema import generate
 from manager.settings import ROOT, load_env
 from manager.sources import lipas
+from manager.state import mark_published
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -42,13 +43,15 @@ def main(argv: list[str] | None = None) -> int:
         if args.dry_run:
             print("Dry run, nothing published.")
         else:
+            if bundle.published:
+                mark_published()
             print("Published:" if bundle.published else "Nothing published.")
             for line in bundle.published:
                 print(f"  {line}")
         return 0
     if args.command == "preview":
         try:
-            bundle = publish(args.data, args.dist, args.frontend, ROOT, [])
+            bundle = publish(args.data, args.dist, args.frontend, args.work_dir, [])
         except PublishError as e:
             print(f"Preview aborted:\n{e}", file=sys.stderr)
             return 1
