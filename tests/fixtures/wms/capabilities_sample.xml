@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE WMT_MS_Capabilities SYSTEM "http://schemas.opengis.net/wms/1.1.1/capabilities_1_1_1.dtd"[
+	<!ELEMENT VendorSpecificCapabilities EMPTY>
+]>
+<WMT_MS_Capabilities version="1.1.1" updateSequence="0">
+ <Service>
+  <Name>OGC:WMS</Name>
+  <Title>Rovaniemi WMS Server</Title>
+  <Abstract>Map Server maintained by Trimble Corporation.  Contact: Rovaniemi Paikkatieto- ja tonttipalvelut </Abstract>
+  <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://rovaniemi.asiointi.fi/teklaogcweb/WMS.ashx" />
+  <Fees>none</Fees>
+  <AccessConstraints>none</AccessConstraints>
+ </Service>
+ <Capability>
+  <Request>
+   <GetCapabilities>
+    <Format>application/vnd.ogc.wms_xml</Format>
+    <DCPType>
+     <HTTP>
+      <Get>
+       <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://rovaniemi.asiointi.fi/teklaogcweb/WMS.ashx" />
+      </Get>
+     </HTTP>
+    </DCPType>
+   </GetCapabilities>
+   <GetMap>
+    <Format>image/png</Format>
+    <DCPType>
+     <HTTP>
+      <Get>
+       <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple" xlink:href="https://rovaniemi.asiointi.fi/teklaogcweb/WMS.ashx" />
+      </Get>
+     </HTTP>
+    </DCPType>
+   </GetMap>
+  </Request>
+  <Exception>
+   <Format>application/vnd.ogc.se_xml</Format>
+  </Exception>
+  <VendorSpecificCapabilities />
+  <Layer>
+   <Title>Rovaniemen WMS Server</Title>
+   <SRS>EPSG:3857</SRS>
+   <SRS>EPSG:4326</SRS>
+   <SRS>EPSG:3067</SRS>
+   <SRS>EPSG:3880</SRS>
+   <ScaleHint min="0.0000" max="0.0000" />
+   <Layer>
+    <Title>Avoin data</Title>
+    <Abstract>Sisältää tasot, jotka eivät vaadi tunnuksia.</Abstract>
+    <Layer>
+     <Title>Ilmakuvat</Title>
+     <Layer>
+      <Name>Ilmakuva 2025</Name>
+      <Title>Ilmakuva 2025</Title>
+      <Abstract>Ilmakuva 2025</Abstract>
+      <KeywordList>
+       <Keyword>Ilmakuva 2025</Keyword>
+      </KeywordList>
+      <LatLonBoundingBox minx="24.565097" miny="66.057546" maxx="27.388396" maxy="67.223952" />
+      <BoundingBox SRS="EPSG:3857" minx="2734574.05" miny="9892613.54" maxx="3048862.32" maxy="10220158.36" />
+      <BoundingBox SRS="EPSG:4326" minx="24.565097" miny="66.057546" maxx="27.388396" maxy="67.223952" />
+      <BoundingBox SRS="EPSG:3067" minx="389759.43" miny="7328465.68" maxx="516779.02" maxy="7456398.38" />
+      <BoundingBox SRS="EPSG:3880" minx="26435000.00" miny="7330000.00" maxx="26560000.00" maxy="7460000.00" />
+      <ScaleHint min="5050.7643" max="1292995.3571" />
+     </Layer>
+    </Layer>
+    <Layer>
+     <Name>Opaskartta_qgs</Name>
+     <Title>Opaskartta_qgs</Title>
+     <Abstract>Opaskartta_qgs</Abstract>
+     <KeywordList>
+      <Keyword>Opaskartta_qgs</Keyword>
+     </KeywordList>
+     <LatLonBoundingBox minx="24.679804" miny="66.153540" maxx="27.309355" maxy="67.177820" />
+     <BoundingBox SRS="EPSG:3857" minx="2747343.18" miny="9918995.07" maxx="3040063.44" maxy="10206905.95" />
+     <BoundingBox SRS="EPSG:4326" minx="24.679804" miny="66.153540" maxx="27.309355" maxy="67.177820" />
+     <BoundingBox SRS="EPSG:3067" minx="395347.01" miny="7338962.60" maxx="513389.98" maxy="7451236.53" />
+     <BoundingBox SRS="EPSG:3880" minx="26440421.00" miny="7340588.00" maxx="26556693.00" maxy="7454782.00" />
+     <ScaleHint min="5050.7643" max="1292995.3571" />
+    </Layer>
+    <Layer>
+     <Title>Pohjakartta ja kiinteistotiedot</Title>
+     <Layer>
+      <Name>Pohjakartta</Name>
+      <Title>Pohjakartta</Title>
+      <Abstract>Pohjakartta</Abstract>
+      <KeywordList>
+       <Keyword>Pohjakartta</Keyword>
+      </KeywordList>
+      <LatLonBoundingBox minx="24.565097" miny="66.057546" maxx="27.388396" maxy="67.223952" />
+      <BoundingBox SRS="EPSG:3857" minx="2734574.05" miny="9892613.54" maxx="3048862.32" maxy="10220158.36" />
+      <BoundingBox SRS="EPSG:4326" minx="24.565097" miny="66.057546" maxx="27.388396" maxy="67.223952" />
+      <BoundingBox SRS="EPSG:3067" minx="389759.43" miny="7328465.68" maxx="516779.02" maxy="7456398.38" />
+      <BoundingBox SRS="EPSG:3880" minx="26435000.00" miny="7330000.00" maxx="26560000.00" maxy="7460000.00" />
+      <ScaleHint min="5050.7643" max="1292995.3571" />
+     </Layer>
+    </Layer>
+   </Layer>
+  </Layer>
+ </Capability>
+</WMT_MS_Capabilities>

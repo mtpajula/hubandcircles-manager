@@ -1,8 +1,9 @@
-"""Write source data (route, theme, project) into DATA_DIR. The UI only calls; this module writes.
+"""Write source data (route, theme, layer, project) into DATA_DIR. The UI only calls; this
+module writes.
 
 Every write goes through write_json (one JSON writer, rule 3 of the skill). The route directory
-removal in delete_route and the image removal in remove_media are the only deletions the tool
-performs.
+removal in delete_route, the image removal in remove_media and the card removal in delete_layer
+are the only deletions the tool performs.
 """
 
 import re
@@ -18,6 +19,7 @@ from manager.build.read import read_features
 from manager.models import (
     GallerySection,
     LangText,
+    Layer,
     ManualMarker,
     Project,
     Route,
@@ -28,6 +30,7 @@ from manager.slug import slugify
 
 __all__ = [
     "StoreError",
+    "delete_layer",
     "delete_route",
     "description",
     "manual_id",
@@ -37,6 +40,7 @@ __all__ = [
     "read_manual",
     "remove_media",
     "route_dir",
+    "save_layer",
     "save_manual",
     "save_project",
     "save_route",
@@ -142,6 +146,27 @@ def save_theme(data_dir: Path, theme: Theme) -> Path:
     path = data_dir / "themes" / f"{theme.id}.json"
     write_json(path, theme.model_dump(mode="json", exclude_none=True))
     return path
+
+
+def layer_path(data_dir: Path, layer_id: str) -> Path:
+    return data_dir / "layers" / f"{layer_id}.json"
+
+
+def save_layer(data_dir: Path, layer: Layer) -> Path:
+    """Write layers/<id>.json (5.4); the id is a slug like a route id."""
+    if not SLUG.match(layer.id):
+        raise StoreError(f"layer id {layer.id!r} is not a slug (a-z, 0-9, '-')")
+    path = layer_path(data_dir, layer.id)
+    write_json(path, layer.model_dump(mode="json", exclude_none=True))
+    return path
+
+
+def delete_layer(data_dir: Path, layer_id: str) -> None:
+    """Remove layers/<id>.json. Theme references are caught by the build, not here."""
+    path = layer_path(data_dir, layer_id)
+    if not SLUG.match(layer_id) or not path.is_file():
+        raise StoreError(f"{path}: no such layer")
+    path.unlink()
 
 
 def save_project(data_dir: Path, project: Project) -> Path:

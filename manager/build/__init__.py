@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from manager.build.catalog import build_catalog
 from manager.build.errors import BuildError
 from manager.build.gpx import export_gpx
+from manager.build.layers import publish_layers
 from manager.build.media import publish_media
 from manager.build.overview import overview
 from manager.build.read import read_source_data
@@ -109,10 +110,11 @@ def build(data_dir: Path, dist_dir: Path) -> BuildReport:
     write_json(tmp / "overview.geojson", overview(results))
     if services.services:
         write_json(tmp / "services.geojson", services_collection(services.services))
-    catalog = build_catalog(source, published, services=bool(services.services))
+    layers = publish_layers(source.layers, services.services, data_dir, tmp)
+    catalog = build_catalog(source, published, services=bool(services.services), layers=layers)
     write_json(tmp / "catalog.json", published_form(catalog))
 
-    findings = check_all(data_dir, tmp, source, published)
+    findings = check_all(data_dir, tmp, source, published, layers)
     errors = [x.message for x in findings if x.level == "error"]
     if errors:
         raise BuildError("\n".join(f"- {e}" for e in errors))

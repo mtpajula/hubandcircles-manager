@@ -4,12 +4,13 @@ from dataclasses import replace
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from manager.models import PublishedRoute
+from manager.models import PublishedLayer, PublishedRoute
 from manager.validate.enums import check_enums
 from manager.validate.finding import Finding
 from manager.validate.hardest_section import check_hardest_section
 from manager.validate.itrs_missing import check_itrs_missing
 from manager.validate.itrs_values import check_itrs_values
+from manager.validate.layers import check_layers
 from manager.validate.links import check_links
 from manager.validate.maintenance_reasons import check_maintenance_reasons
 from manager.validate.manual_markers import check_manual_markers
@@ -37,6 +38,7 @@ CHECKS = (
     "enums",
     "links",
     "references",
+    "layers",
     "presentation",
     "segments",
     "hardest_section",
@@ -54,14 +56,19 @@ CHECKS = (
 
 
 def check_all(
-    data_dir: Path, tmp_dir: Path, source: "SourceData", published: list[PublishedRoute]
+    data_dir: Path,
+    tmp_dir: Path,
+    source: "SourceData",
+    published: list[PublishedRoute],
+    layers: list[PublishedLayer] = (),
 ) -> list[Finding]:
     """Run every check and tag each finding with the key of the check that produced it."""
     results = {
         "schema": check_schema(tmp_dir),
         "enums": check_enums(source),
         "links": check_links(tmp_dir),
-        "references": check_references(source),
+        "references": check_references(source, layers),
+        "layers": check_layers(source),
         "presentation": check_presentation(source),
         "segments": check_segments(source, published),
         "hardest_section": check_hardest_section(source, published),

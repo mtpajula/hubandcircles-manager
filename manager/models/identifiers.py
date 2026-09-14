@@ -64,6 +64,10 @@ ServiceCategory = Literal[
 ]
 # Merge priority in build/services.py: manual > visitfinland > osm (5.5).
 ServiceSource = Literal["osm", "visitfinland", "manual"]
+# Map layer slots (5.7, chapter 8): fixed in the frontend, chosen per layer card.
+LayerSlot = Literal["base", "raster", "area", "routes", "points"]
+# Published layer types (5.4): each is frontend code; the build derives them from the source.
+LayerType = Literal["xyz", "pmtiles", "geojson", "wms"]
 
 KEY_FIGURES: tuple[str, ...] = get_args(KeyFigure)
 BAND_LANES: tuple[str, ...] = get_args(BandLane)
@@ -80,6 +84,8 @@ NON_MUNICIPAL_REASONS: tuple[str, ...] = get_args(NonMunicipalReason)
 SECTION_TYPES: tuple[str, ...] = get_args(SectionType)
 SERVICE_CATEGORIES: tuple[str, ...] = get_args(ServiceCategory)
 SERVICE_SOURCES: tuple[str, ...] = get_args(ServiceSource)
+LAYER_SLOTS: tuple[str, ...] = get_args(LayerSlot)
+LAYER_TYPES: tuple[str, ...] = get_args(LayerType)
 
 # Level number shown next to the name and colour (5.3): green 1 ... orange 5.
 ITRS_LEVEL_NUMBER = {level: number for number, level in enumerate(ITRS_LEVELS, start=1)}

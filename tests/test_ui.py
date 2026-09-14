@@ -323,6 +323,118 @@ def test_themes_page_saves_theme_and_project(ui_env):
 OSM_SAMPLE = Path(__file__).parent / "fixtures" / "osm" / "overpass_sample.json"
 
 
+# --- Layers page (ADMIN-UI-SPEC section 3) ------------------------------------------------------
+
+WMS_SAMPLE = Path(__file__).parent / "fixtures" / "wms" / "capabilities_sample.xml"
+
+
+def test_layers_page_table_and_edit(ui_env):
+    at = AppTest.from_file(str(UI / "views" / "layers.py"), default_timeout=10).run()
+    assert not at.exception, at.exception
+    table = at.dataframe[0].value
+    assert list(table.columns) == ["taso", "nimi", "paikka", "muoto", "teemat", "oletus"]
+    assert list(table.iloc[0]) == [
+        "guide-map",
+        "Opaskartta",
+        "pohjakartta",
+        "wms",
+        "Maantie, Gravel",
+        "päällä",
+    ]
+    assert [e.label for e in at.expander] == ["Muokkaa: Opaskartta"]
+    assert at.text_input(key="wms_layers_guide-map").value == "Opaskartta_qgs"
+    assert not at.checkbox(key="all_themes_guide-map").value
+
+    at.checkbox(key="all_themes_guide-map").check()
+    at.multiselect(key="routes_guide-map").set_value(["test-loop"])
+    at.checkbox(key="default_on_guide-map").uncheck()
+    at.number_input(key="opacity_guide-map").set_value(0.8)
+    at.text_input(key="wms_layers_guide-map").set_value("Pohjakartta")
+    at.button(key="save_layer_guide-map").click().run()
+    assert not at.exception, at.exception
+    card = json.loads((ui_env / "layers" / "guide-map.json").read_text(encoding="utf-8"))
+    assert card["visible_in"] == {"themes": "*", "routes": ["test-loop"]}
+    assert card["default_on"] is False and card["opacity"] == 0.8
+    assert card["wms"]["layers"] == "Pohjakartta" and card["source"] == {"method": "wms_external"}
+    assert list(at.dataframe[0].value.iloc[0])[4:] == ["kaikki", "pois"]
+
+    at.button(key="delete_layer_guide-map").click().run()
+    assert (ui_env / "layers" / "guide-map.json").is_file()  # not confirmed
+    assert any(w.value == texts.DELETE_UNCONFIRMED for w in at.warning)
+    at.checkbox(key="confirm_delete_guide-map").check()
+    at.button(key="delete_layer_guide-map").click().run()
+    assert not at.exception, at.exception
+    assert not (ui_env / "layers" / "guide-map.json").exists()
+    assert not at.dataframe and at.caption[1].value == texts.LAYERS_NONE
+
+
+def test_layers_page_adds_wms_and_xyz_layers(ui_env, monkeypatch):
+    seen = {}
+
+    def fake_fetch(url, *, timeout_s=30):
+        seen["url"] = url
+        return WMS_SAMPLE.read_bytes()
+
+    monkeypatch.setattr("manager.sources.wms.fetch", fake_fetch)
+    at = AppTest.from_file(str(UI / "views" / "layers.py"), default_timeout=10).run()
+    assert not at.exception, at.exception
+    assert [b.label for b in at.button if b.key == "wms_fetch"] == ["Hae tasot palvelimelta"]
+    at.button(key="wms_fetch").click().run()
+    assert not at.exception, at.exception
+    assert seen["url"] == "https://rovaniemi.asiointi.fi/teklaogcweb/WMS.ashx"
+    assert at.selectbox(key="wms_chosen").options == [
+        "Ilmakuva 2025",
+        "Opaskartta_qgs",
+        "Pohjakartta",
+    ]
+    at.selectbox(key="wms_chosen").select("Pohjakartta")
+    at.text_input(key="wms_id").set_value("base-map")
+    at.text_input(key="layer_name_new_wms_fi").set_value("Pohjakartta")
+    at.text_input(key="layer_name_new_wms_en").set_value("Base map")
+    at.checkbox(key="all_themes_new_wms").uncheck().run()  # enables the theme list
+    at.multiselect(key="themes_new_wms").set_value(["mtb"])
+    at.checkbox(key="default_on_new_wms").check()
+    at.text_input(key="attribution_new_wms").set_value("© Rovaniemen kaupunki")
+    at.button(key="save_new_wms").click().run()
+    assert not at.exception, at.exception
+    card = json.loads((ui_env / "layers" / "base-map.json").read_text(encoding="utf-8"))
+    assert card == {
+        "id": "base-map",
+        "name": {"fi": "Pohjakartta", "en": "Base map"},
+        "slot": "base",
+        "source": {"method": "wms_external"},
+        "visible_in": {"themes": ["mtb"], "routes": []},
+        "default_on": True,
+        "attribution": "© Rovaniemen kaupunki",
+        "url": "https://rovaniemi.asiointi.fi/teklaogcweb/WMS.ashx",
+        "wms": {
+            "version": "1.1.1",
+            "layers": "Pohjakartta",
+            "format": "image/png",
+            "srs": "EPSG:3857",
+        },
+    }
+
+    # A taken id and a missing name are refused; then an XYZ layer with a template url.
+    at.text_input(key="xyz_id").set_value("guide-map")
+    at.button(key="save_new_xyz").click().run()
+    assert any(e.value == texts.LAYER_NEEDS_ID_AND_NAME for e in at.error)
+    at.text_input(key="layer_name_new_xyz_fi").set_value("Toner")
+    at.button(key="save_new_xyz").click().run()
+    assert any(e.value.startswith("Tunniste guide-map on jo") for e in at.error)
+    at.text_input(key="xyz_id").set_value("toner")
+    at.button(key="save_new_xyz").click().run()
+    assert any(e.value.startswith("Tallennus epäonnistui") for e in at.error)  # no url
+    at.text_input(key="xyz_url").set_value("https://tiles.example.org/{z}/{x}/{y}.png")
+    at.text_input(key="attribution_new_xyz").set_value("© Example")
+    at.button(key="save_new_xyz").click().run()
+    assert not at.exception, at.exception
+    card = json.loads((ui_env / "layers" / "toner.json").read_text(encoding="utf-8"))
+    assert card["source"] == {"method": "xyz_external"} and card["visible_in"]["themes"] == "*"
+    assert card["url"] == "https://tiles.example.org/{z}/{x}/{y}.png" and "wms" not in card
+    assert list(at.dataframe[0].value["taso"]) == ["base-map", "guide-map", "toner"]
+
+
 def test_services_page_with_empty_snapshot(ui_env, monkeypatch):
     monkeypatch.setenv("VF_API_KEY", "")  # empty counts as missing and shadows a real .env
     at = AppTest.from_file(str(UI / "views" / "services.py"), default_timeout=10).run()

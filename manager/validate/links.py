@@ -23,6 +23,10 @@ def check_links(tmp_dir: Path) -> list[Finding]:
     catalog = _read(tmp_dir / "catalog.json")
     findings = _check(tmp_dir, catalog.get("overview"), "catalog.json: overview")
     findings += _check(tmp_dir, catalog.get("services"), "catalog.json: services")
+    for layer in catalog.get("layers", []):
+        if layer.get("type") in ("geojson", "pmtiles"):  # xyz and wms urls are external
+            source = f"catalog.json: layer {layer.get('id')}: url"
+            findings += _check(tmp_dir, layer.get("url"), source)
     for route in catalog.get("routes", []):
         source = f"catalog.json: route {route.get('id')}: cover_image"
         findings += _check(tmp_dir, route.get("cover_image"), source)

@@ -56,6 +56,7 @@ CHECK_NAMES = {
     "enums": "Enum-arvot",
     "links": "Linkit",
     "references": "Viittaukset",
+    "layers": "Tasot",
     "presentation": "Esitystunnisteet",
     "segments": "Segmentit",
     "hardest_section": "Vaativin kohta",
@@ -369,6 +370,74 @@ SERVICE_CATEGORY_NAMES = {
     "hut": "tupa",
     "issue": "ongelmakohta",
 }
+
+# Layers page (ADMIN-UI-SPEC section 3, simplified: external WMS/XYZ and service layers)
+LAYERS_INTRO = (
+    "Tasokortti kertoo työkalulle lähteen ja frontendille esitystavan. Teeman pohjakartta "
+    "valitaan Teemat-sivulla base-paikan tasoista."
+)
+LAYERS_NONE = "Ei tasoja. Lisää WMS- tai XYZ-taso alla."
+LAYER_COLUMNS = {
+    "id": "taso",
+    "name": "nimi",
+    "slot": "paikka",
+    "type": "muoto",
+    "themes": "teemat",
+    "default_on": "oletus",
+}
+LAYER_ON = "päällä"
+LAYER_OFF = "pois"
+LAYER_ALL_THEMES = "kaikki"
+LAYER_TYPE_LATER = "ei vielä"
+LAYER_EDIT_HEADER = "Muokkaa: {name}"
+LAYER_ID = "Tunniste"
+LAYER_ID_HELP = "Tiedoston nimi layers/-kansiossa: pieniä kirjaimia, numeroita ja viivoja."
+LAYER_NAME = "Nimi"
+LAYER_SLOT = "Paikka"
+LAYER_SLOT_NAMES = {
+    "base": "pohjakartta",
+    "raster": "rasteri",
+    "area": "alue",
+    "routes": "reitit",
+    "points": "pisteet",
+}
+LAYER_SOURCE = "Lähde"
+LAYER_SOURCE_NAMES = {
+    "wms_external": "ulkoinen WMS",
+    "xyz_external": "ulkoiset XYZ-tiilet",
+    "services": "palvelupisteet",
+    "geojson_file": "GeoJSON-tiedosto",
+    "tile_dir": "tiilikansio",
+    "mml_corridor": "MML-käytävä",
+    "geotiff": "GeoTIFF",
+}
+LAYER_VISIBILITY_HEADER = "Näkyvyys"
+LAYER_ALL_THEMES_CHECKBOX = "Kaikissa teemoissa"
+LAYER_THEMES = "Teemat"
+LAYER_ROUTES = "Lisäksi reitillä"
+LAYER_DEFAULT_ON = "Oletuksena päällä"
+LAYER_OPACITY = "Läpinäkyvyys (0–1, tyhjä = tason oma)"
+LAYER_ATTRIBUTION = "Nimeäminen (attribution)"
+LAYER_URL = "Osoite"
+LAYER_XYZ_URL = "Tiiliosoite ({z}/{x}/{y}-malli)"
+LAYER_WMS_LAYERS = "WMS-taso (layers)"
+LAYER_WMS_SERVICE_URL = "WMS-palvelun osoite"
+LAYER_SERVICE_CATEGORIES = "Palvelukategoriat"
+BUTTON_SAVE_LAYER = "Tallenna taso"
+BUTTON_DELETE_LAYER = "Poista taso"
+LAYER_SAVED = "Taso tallennettu: {path}"
+LAYER_DELETED = "Taso poistettu: {layer_id}"
+LAYER_NEW_WMS_HEADER = "Uusi WMS-taso"
+LAYER_NEW_XYZ_HEADER = "Uusi XYZ-taso"
+BUTTON_WMS_FETCH = "Hae tasot palvelimelta"
+WMS_FETCHING = "Haetaan GetCapabilities…"
+WMS_FETCHED = "Palvelin tarjoaa {count} tasoa"
+WMS_FETCH_FAILED = "Haku epäonnistui: {error}"
+WMS_FETCH_FIRST = "Hae tasot palvelimelta, niin nimet tulevat valittaviksi."
+WMS_LAYER_OPTION = "{name} · {title}"
+LAYER_NEEDS_ID_AND_NAME = "Anna tunniste ja nimi."
+LAYER_XYZ_URL_HELP = "Ulkoinen avaimeton tiilipalvelu; selain kutsuu sitä suoraan."
+LAYER_ID_TAKEN = "Tunniste {layer_id} on jo käytössä."
 
 # Themes page
 THEMES_INTRO = (

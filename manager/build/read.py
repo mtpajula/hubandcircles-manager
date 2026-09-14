@@ -7,7 +7,7 @@ from pathlib import Path
 from pydantic import BaseModel, ValidationError
 
 from manager.build.errors import BuildError
-from manager.models import ManualMarker, Project, Route, Service, Theme
+from manager.models import Layer, ManualMarker, Project, Route, Service, Theme
 from manager.validate.schema import error_lines
 
 
@@ -20,6 +20,7 @@ class SourceData:
     osm_services: list[Service] = field(default_factory=list)
     visitfinland_services: list[Service] = field(default_factory=list)
     manual_markers: list[ManualMarker] = field(default_factory=list)
+    layers: list[Layer] = field(default_factory=list)  # layers/*.json (5.4)
 
 
 def _read[M: BaseModel](path: Path, model: type[M]) -> M:
@@ -50,7 +51,8 @@ def read_features[M: Service | ManualMarker](path: Path, model: type[M]) -> list
 
 
 def read_source_data(data_dir: Path) -> SourceData:
-    """Read project.json, themes/*.json, routes/*/route.json and services/*. Failure → BuildError."""
+    """Read project.json, themes/*.json, layers/*.json, routes/*/route.json and services/*.
+    Failure → BuildError."""
     services = data_dir / "services"
     return SourceData(
         project=_read(data_dir / "project.json", Project),
@@ -59,4 +61,5 @@ def read_source_data(data_dir: Path) -> SourceData:
         osm_services=read_features(services / "osm.geojson", Service),
         visitfinland_services=read_features(services / "visitfinland.geojson", Service),
         manual_markers=read_features(services / "manual.geojson", ManualMarker),
+        layers=[_read(p, Layer) for p in sorted((data_dir / "layers").glob("*.json"))],
     )

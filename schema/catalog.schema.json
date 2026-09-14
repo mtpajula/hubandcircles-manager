@@ -226,6 +226,31 @@
       "title": "Itrs",
       "type": "object"
     },
+    "LegendEntry": {
+      "additionalProperties": false,
+      "description": "One row of a raster legend (5.4): the colour and its label.",
+      "properties": {
+        "color": {
+          "pattern": "^#[0-9A-Fa-f]{6}$",
+          "title": "Color",
+          "type": "string"
+        },
+        "label": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "minProperties": 1,
+          "title": "Label",
+          "type": "object"
+        }
+      },
+      "required": [
+        "color",
+        "label"
+      ],
+      "title": "LegendEntry",
+      "type": "object"
+    },
     "Presentation": {
       "additionalProperties": false,
       "description": "Which route facts come first in this theme (5.2). Lists hold 5.7 identifiers only,\nin display order; the frontend falls back to length, ascent, elevation and cover image.",
@@ -302,6 +327,162 @@
         }
       },
       "title": "Presentation",
+      "type": "object"
+    },
+    "PublishedLayer": {
+      "description": "A layer as listed in catalog.json (5.4): the frontend side of the card. `source` and\n`publish_format` are gone; `type`, `url`, `legend` and `fetched_at` come from the build.",
+      "properties": {
+        "attribution": {
+          "title": "Attribution",
+          "type": "string"
+        },
+        "default_on": {
+          "default": false,
+          "title": "Default On",
+          "type": "boolean"
+        },
+        "fetched_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Fetched At"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "legend": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/LegendEntry"
+          },
+          "title": "Legend",
+          "type": "array"
+        },
+        "maplibre": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maplibre"
+        },
+        "maxzoom": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Maxzoom"
+        },
+        "minzoom": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Minzoom"
+        },
+        "name": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "minProperties": 1,
+          "title": "Name",
+          "type": "object"
+        },
+        "opacity": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Opacity"
+        },
+        "slot": {
+          "enum": [
+            "base",
+            "raster",
+            "area",
+            "routes",
+            "points"
+          ],
+          "title": "Slot",
+          "type": "string"
+        },
+        "style": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/VectorStyle"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "type": {
+          "enum": [
+            "xyz",
+            "pmtiles",
+            "geojson",
+            "wms"
+          ],
+          "title": "Type",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        },
+        "visible_in": {
+          "$ref": "#/$defs/VisibleIn"
+        },
+        "wms": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Wms"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "slot",
+        "type",
+        "url",
+        "visible_in",
+        "attribution"
+      ],
+      "title": "PublishedLayer",
       "type": "object"
     },
     "RouteSummary": {
@@ -600,6 +781,136 @@
       ],
       "title": "Theme",
       "type": "object"
+    },
+    "VectorStyle": {
+      "additionalProperties": false,
+      "description": "Simplified vector style (5.4); the frontend adapter turns it into MapLibre paint.",
+      "properties": {
+        "color": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Color"
+        },
+        "dashed": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dashed"
+        },
+        "icon": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Icon"
+        },
+        "opacity": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Opacity"
+        },
+        "width": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Width"
+        }
+      },
+      "title": "VectorStyle",
+      "type": "object"
+    },
+    "VisibleIn": {
+      "additionalProperties": false,
+      "description": "Where the layer is offered (5.4): every theme or the listed ones, plus open routes.",
+      "properties": {
+        "routes": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Routes",
+          "type": "array"
+        },
+        "themes": {
+          "anyOf": [
+            {
+              "const": "*",
+              "type": "string"
+            },
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            }
+          ],
+          "default": "*",
+          "title": "Themes"
+        }
+      },
+      "title": "VisibleIn",
+      "type": "object"
+    },
+    "Wms": {
+      "additionalProperties": false,
+      "description": "GetMap parameters of a `wms` layer.",
+      "properties": {
+        "format": {
+          "default": "image/png",
+          "title": "Format",
+          "type": "string"
+        },
+        "layers": {
+          "title": "Layers",
+          "type": "string"
+        },
+        "srs": {
+          "default": "EPSG:3857",
+          "title": "Srs",
+          "type": "string"
+        },
+        "version": {
+          "default": "1.1.1",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "layers"
+      ],
+      "title": "Wms",
+      "type": "object"
     }
   },
   "properties": {
@@ -618,8 +929,7 @@
     "layers": {
       "default": [],
       "items": {
-        "additionalProperties": true,
-        "type": "object"
+        "$ref": "#/$defs/PublishedLayer"
       },
       "title": "Layers",
       "type": "array"

@@ -86,6 +86,25 @@ def test_save_theme_and_project_round_trip(data):
     assert reread.project.nearby_services_m == 750
 
 
+def test_save_and_delete_layer(data):
+    source = read_source_data(data)
+    layer = source.layers[0].model_copy(update={"id": "guide-map-2", "default_on": False})
+    path = store.save_layer(data, layer)
+    assert path == data / "layers" / "guide-map-2.json"
+    card = json.loads(path.read_text(encoding="utf-8"))
+    assert card["source"] == {"method": "wms_external"} and "minzoom" not in card  # exclude_none
+    assert {x.id for x in read_source_data(data).layers} == {"guide-map", "guide-map-2"}
+    with pytest.raises(store.StoreError, match="slug"):
+        store.save_layer(data, layer.model_copy(update={"id": "Guide Map"}))
+    store.delete_layer(data, "guide-map-2")
+    assert not path.exists()
+    with pytest.raises(store.StoreError, match="no such layer"):
+        store.delete_layer(data, "guide-map-2")
+    with pytest.raises(store.StoreError, match="no such layer"):
+        store.delete_layer(data, "../project")
+    assert (data / "project.json").is_file()
+
+
 def test_description_helpers_touch_only_the_first_text_section():
     gallery = GallerySection(type="gallery", media=["a.jpg"])
     route = _route(sections=[gallery, TextSection(type="text", content={"fi": "x"})])

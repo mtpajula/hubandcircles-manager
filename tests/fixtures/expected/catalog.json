@@ -231,7 +231,34 @@
       }
     }
   ],
-  "layers": [],
+  "layers": [
+    {
+      "id": "guide-map",
+      "name": {
+        "fi": "Opaskartta",
+        "en": "Guide map"
+      },
+      "slot": "base",
+      "type": "wms",
+      "url": "https://rovaniemi.asiointi.fi/teklaogcweb/WMS.ashx",
+      "wms": {
+        "version": "1.1.1",
+        "layers": "Opaskartta_qgs",
+        "format": "image/png",
+        "srs": "EPSG:3857"
+      },
+      "visible_in": {
+        "themes": [
+          "road",
+          "gravel"
+        ],
+        "routes": []
+      },
+      "default_on": true,
+      "attribution": "© Rovaniemen kaupunki",
+      "legend": []
+    }
+  ],
   "routes": [
     {
       "id": "test-loop",

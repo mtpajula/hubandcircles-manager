@@ -25,7 +25,9 @@ def test_golden(tmp_path):
     assert summary["difficulty"] == "easy" and summary["itrs"] == {"endurance": "blue"}
     assert summary["dominant_surface"] == "gravel" and summary["surface_shares"] == {"gravel": 1.0}
     assert summary["separated_share"] == 0.0  # traffic is known (quiet), none of it separated
-    assert catalog["schema_version"] == 1 and catalog["layers"] == []
+    # Chapter 5.4: the wms layer card is published without `source`, with `type` from the build.
+    assert catalog["schema_version"] == 1 and [x["id"] for x in catalog["layers"]] == ["guide-map"]
+    assert catalog["layers"][0]["type"] == "wms" and "source" not in catalog["layers"][0]
     assert "services" not in catalog and "coverage" not in catalog
 
     route = (tmp_path / "dist" / "routes" / "test-loop" / "route.json").read_text()

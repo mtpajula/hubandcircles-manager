@@ -1,8 +1,8 @@
 # Fixture source data (V1)
 
 Synthetic `DATA_DIR` for the build golden test. The layout follows ARKKITEHTUURI.md
-chapters 5.1–5.3, 5.8 and 6. Scope: no layers, no services, no media. Field names
-exactly as in the architecture (English, P10).
+chapters 5.1–5.4, 5.8 and 6. Scope: one external WMS layer, no services, no media. Field
+names exactly as in the architecture (English, P10).
 
 ## Contents
 
@@ -10,6 +10,7 @@ exactly as in the architecture (English, P10).
 |---|---|
 | `project.json` | Project settings (5.1). No `feedback`; `itrs_scales` both `null`. |
 | `themes/*.json` | The five default themes of chapter 5.8 (`winter`, `mtb`, `gravel`, `road`, `touring`) with `name`, `tagline`, `order` 1–5, `colors`, `dark` (true only for `winter`) and the 5.8 `presentation` blocks. No `basemap`, `default_layers` empty. Gravel `primary`/`route` is `#946013` instead of the 5.8 `#9A6414`: the latter is 4.43:1 against snow `#F4F1EC` and fails the theme contrast check. |
+| `layers/guide-map.json` | One layer card (5.4): Rovaniemi's keyless WMS (`wms_external`, layer `Opaskartta_qgs`) in the `base` slot for `road` and `gravel`. Published as `type: "wms"` without `source`. No theme references it, so the golden stays free of `basemap`. |
 | `routes/test-loop/route.json` | One route card (5.3). One `text` section, `itrs.endurance` (gravel key figure) and one `surface`+`traffic` segment covering the whole route (gravel band), no cover image, no media. |
 | `routes/test-loop/track.gpx` | GPX 1.1, one `trk`/`trkseg`, 10 `trkpt` points with `ele`, no timestamps. |
 | `services/manual.geojson` | Empty `FeatureCollection`. The layout is in the architecture; V2 needs it. |
@@ -44,7 +45,7 @@ first (1) is not counted, because the GPX has no closing point.
 
 ## Other expectations
 
-- `catalog.json`: five themes ordered by `order`, one route (`test-loop`), `default_theme: "gravel"`, `languages: ["fi","en"]`, `layers: []`, no `services` or `coverage`.
+- `catalog.json`: five themes ordered by `order`, one route (`test-loop`), `default_theme: "gravel"`, `languages: ["fi","en"]`, `layers` with the published `guide-map` (`type: "wms"`, `legend: []`), no `services` or `coverage`.
 - The route's `themes: ["gravel"]` points to an existing theme → no reference error.
 - Every `name`, `tagline` and `content` has both `fi` and `en` → no translation warnings.
 - Theme colour `#946013` against white ≈ 5.33:1 and against snow `#F4F1EC` ≈ 4.73:1 → passes the 4.5:1 limit; the 5.8 gravel `#9A6414` is 4.99:1 / 4.43:1 and fails on snow.

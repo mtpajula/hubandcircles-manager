@@ -7,11 +7,17 @@ from manager.models import (
     ITRS_LEVEL_NUMBER,
     Catalog,
     Colors,
+    GeotiffSource,
+    Layer,
+    MmlCorridorSource,
     Presentation,
     Project,
     PublishedRoute,
     Route,
+    ServicesSource,
     Theme,
+    VisibleIn,
+    WmsExternalSource,
 )
 
 # Chapter 5.1
@@ -88,9 +94,58 @@ ROUTE = {
     "media": {"media/IMG_2041.jpg": {"author": "M. Pajula", "license": "CC BY 4.0"}},
 }
 
+# Chapter 5.4: the three layer cards of the architecture (topo and bilberry are V4b sources,
+# accepted by the model) and the published guide map.
+TOPO_LAYER = {
+    "id": "topo",
+    "name": {"fi": "Maastokartta", "en": "Topographic map"},
+    "slot": "base",
+    "source": {
+        "method": "mml_corridor",
+        "layer": "maastokartta",
+        "buffers_m": {"13": 3000, "14": 1500, "15": 800, "16": 400},
+    },
+    "publish_format": "xyz",
+    "visible_in": {"themes": "*", "routes": []},
+    "default_on": True,
+    "minzoom": 10,
+    "maxzoom": 16,
+    "attribution": "© Maanmittauslaitos, CC BY 4.0",
+}
+BILBERRY_LAYER = {
+    "id": "bilberry-2026",
+    "name": {"fi": "Mustikkasatoennuste 2026", "en": "Bilberry yield forecast 2026"},
+    "slot": "raster",
+    "source": {
+        "method": "geotiff",
+        "file": "luke/bilberry_2026.tif",
+        "classes": [
+            {"value": 1, "color": "#f1eef6", "label": {"fi": "Heikko", "en": "Poor"}},
+            {"value": 2, "color": "#bdc9e1", "label": {"fi": "Kohtalainen", "en": "Moderate"}},
+        ],
+    },
+    "publish_format": "pmtiles",
+    "visible_in": {"themes": ["touring", "gravel"], "routes": ["ounasvaara-gravel"]},
+    "default_on": False,
+    "opacity": 0.6,
+    "attribution": "© Luonnonvarakeskus",
+}
+GUIDE_MAP_LAYER = {
+    "id": "guide-map",
+    "name": {"fi": "Opaskartta", "en": "Guide map"},
+    "slot": "base",
+    "source": {"method": "wms_external"},
+    "url": "https://rovaniemi.asiointi.fi/teklaogcweb/WMS.ashx",
+    "wms": {"version": "1.1.1", "layers": "Opaskartta", "format": "image/png", "srs": "EPSG:3857"},
+    "visible_in": {"themes": ["road", "gravel"], "routes": []},
+    "default_on": True,
+    "attribution": "© Rovaniemen kaupunki",
+}
+PUBLISHED_GUIDE_MAP = {k: v for k, v in GUIDE_MAP_LAYER.items() if k != "source"} | {"type": "wms"}
+
 # Chapter 5.6 without the V2 summary fields and without `services`/`coverage`. The
-# "..."-abbreviated theme of the architecture is replaced with the chapter 5.2 theme because
-# Theme is a full model; layers are a free dict until V3, so "..." is fine there.
+# "..."-abbreviated theme and layer of the architecture are replaced with the chapter 5.2 theme
+# and the published 5.4 guide map because both are full models.
 CATALOG = {
     "schema_version": 1,
     "generated_at": "2026-09-12T12:00:00Z",
@@ -103,9 +158,7 @@ CATALOG = {
         "feedback": {"github_repo": "user/hubandcircles-data", "issue_form": "trail-issue.yml"},
     },
     "themes": [THEME],
-    "layers": [
-        {"id": "topo", "type": "xyz", "url": "layers/topo/v3/{z}/{x}/{y}.png", "...": "..."}
-    ],
+    "layers": [PUBLISHED_GUIDE_MAP],
     "routes": [
         {
             "id": "ounasvaara-gravel",
@@ -248,6 +301,82 @@ def test_section_errors(section):
 def test_catalog_example():
     c = Catalog.model_validate(CATALOG)
     assert c.schema_version == 1
-    assert c.layers[0]["id"] == "topo"
+    assert c.layers[0].id == "guide-map" and c.layers[0].type == "wms"
+    assert c.layers[0].wms.layers == "Opaskartta" and c.layers[0].legend == []
     assert c.routes[0].bbox == (25.72, 66.48, 25.95, 66.56)
     assert c.services is None and c.coverage == {}
+
+
+# --- Layer card (5.4) ------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("card", "source_type"),
+    [
+        (TOPO_LAYER, MmlCorridorSource),
+        (BILBERRY_LAYER, GeotiffSource),
+        (GUIDE_MAP_LAYER, WmsExternalSource),
+    ],
+    ids=["mml_corridor", "geotiff", "wms_external"],
+)
+def test_layer_examples_pick_the_source_by_method(card, source_type):
+    layer = Layer.model_validate(card)
+    assert isinstance(layer.source, source_type)
+    assert layer.model_dump(mode="json", exclude_none=True) == {
+        "default_on": False,
+        "visible_in": {"themes": "*", "routes": []},
+        **card,
+    }
+
+
+def test_layer_visible_in_defaults_to_every_theme():
+    layer = Layer.model_validate({**GUIDE_MAP_LAYER, "visible_in": {"themes": "*"}})
+    assert layer.visible_in.themes == "*" and layer.visible_in.routes == []
+    minimal = {k: v for k, v in GUIDE_MAP_LAYER.items() if k != "visible_in"}
+    assert Layer.model_validate(minimal).visible_in == VisibleIn()
+
+
+def test_layer_services_source_and_style():
+    layer = Layer.model_validate(
+        {
+            "id": "shelters",
+            "name": {"fi": "Laavut ja tuvat", "en": "Shelters"},
+            "slot": "points",
+            "source": {"method": "services", "categories": ["lean_to", "hut"]},
+            "attribution": "© OpenStreetMap contributors",
+            "style": {"color": "#3F6B4A", "icon": "shelter"},
+        }
+    )
+    assert isinstance(layer.source, ServicesSource) and layer.source.categories == [
+        "lean_to",
+        "hut",
+    ]
+    assert layer.style.model_dump(exclude_none=True) == {"color": "#3F6B4A", "icon": "shelter"}
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"source": {"method": "tile_cache"}},
+        {"source": {"method": "wms_external", "layer": "x"}},
+        {"source": {"method": "services", "categories": ["sauna"]}},
+        {"source": {"method": "xyz_external"}, "url": None},
+        {"wms": None},
+        {"slot": "overlay"},
+        {"opacity": 1.5},
+        {"visible_in": {"themes": "all"}},
+    ],
+    ids=[
+        "unknown-method",
+        "extra-field",
+        "bad-category",
+        "xyz-without-url",
+        "wms-without-wms",
+        "bad-slot",
+        "opacity-over-1",
+        "themes-not-star",
+    ],
+)
+def test_layer_errors(change):
+    with pytest.raises(ValidationError):
+        Layer.model_validate({**GUIDE_MAP_LAYER, **change})

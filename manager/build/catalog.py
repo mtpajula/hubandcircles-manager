@@ -3,11 +3,14 @@
 from datetime import UTC, datetime
 
 from manager.build.read import SourceData
-from manager.models import Catalog, CatalogProject, PublishedRoute, RouteSummary
+from manager.models import Catalog, CatalogProject, PublishedLayer, PublishedRoute, RouteSummary
 
 
 def build_catalog(
-    source: SourceData, routes: list[PublishedRoute], services: bool = False
+    source: SourceData,
+    routes: list[PublishedRoute],
+    services: bool = False,
+    layers: list[PublishedLayer] = (),
 ) -> Catalog:
     """`services`: whether services.geojson was written (5.6: absent until there are services)."""
     p = source.project
@@ -23,7 +26,7 @@ def build_catalog(
             feedback=p.feedback,
         ),
         themes=sorted(source.themes, key=lambda t: t.order),
-        layers=[],  # ponytail: V3 layer cards
+        layers=list(layers),
         routes=[RouteSummary.model_validate(r.model_dump()) for r in routes],
         overview="overview.geojson",
         services="services.geojson" if services else None,

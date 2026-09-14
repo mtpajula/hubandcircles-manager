@@ -7,10 +7,13 @@ from pydantic import BaseModel, ConfigDict
 from manager.models.common import Bbox, LangText
 from manager.models.identifiers import (
     Difficulty,
+    LayerSlot,
+    LayerType,
     Maintainer,
     NonMunicipalReason,
     WinterMaintenance,
 )
+from manager.models.layer import LegendEntry, VectorStyle, VisibleIn, Wms
 from manager.models.project import Feedback
 from manager.models.route import HardestSection, Itrs, Section, Segment
 from manager.models.theme import Theme
@@ -106,6 +109,30 @@ class PublishedRoute(RouteSummary):
     longest_service_gap: dict[str, ServiceGap] | None = None  # theme id -> gap
 
 
+class PublishedLayer(BaseModel):
+    """A layer as listed in catalog.json (5.4): the frontend side of the card. `source` and
+    `publish_format` are gone; `type`, `url`, `legend` and `fetched_at` come from the build."""
+
+    model_config = ConfigDict(extra="ignore")
+
+    id: str
+    name: LangText
+    slot: LayerSlot
+    type: LayerType
+    url: str  # external address or template, or a path relative to the data root
+    wms: Wms | None = None
+    visible_in: VisibleIn
+    default_on: bool = False
+    minzoom: int | None = None
+    maxzoom: int | None = None
+    opacity: float | None = None
+    attribution: str
+    fetched_at: str | None = None  # ISO UTC timestamp of the newest source snapshot
+    legend: list[LegendEntry] = []
+    style: VectorStyle | None = None
+    maplibre: dict | None = None
+
+
 class CatalogProject(BaseModel):
     model_config = ConfigDict(extra="ignore")
 
@@ -125,8 +152,8 @@ class Catalog(BaseModel):
     generated_at: str
     project: CatalogProject
     themes: list[Theme]
-    layers: list[dict] = []  # ponytail: layer card is modelled in V3
+    layers: list[PublishedLayer] = []
     routes: list[RouteSummary]
     overview: str
     services: str | None = None
-    coverage: dict[str, str] = {}
+    coverage: dict[str, str] = {}  # ponytail: layer id -> coverage GeoJSON, filled in V4b
