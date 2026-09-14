@@ -7,22 +7,37 @@ performs.
 
 import re
 import shutil
+from collections.abc import Iterable
 from pathlib import Path
 
 import gpxpy
 import gpxpy.gpx
 
 from manager.build import write_json
-from manager.models import GallerySection, LangText, Project, Route, TextSection, Theme
+from manager.build.read import read_features
+from manager.models import (
+    GallerySection,
+    LangText,
+    ManualMarker,
+    Project,
+    Route,
+    TextSection,
+    Theme,
+)
 from manager.slug import slugify
 
 __all__ = [
     "StoreError",
     "delete_route",
     "description",
+    "manual_id",
+    "manual_path",
+    "marker_key",
     "media_key",
+    "read_manual",
     "remove_media",
     "route_dir",
+    "save_manual",
     "save_project",
     "save_route",
     "save_theme",
@@ -167,3 +182,39 @@ def with_gallery(route: Route, keys: list[str]) -> Route:
     position = next((i for i, s in enumerate(route.sections) if s.type == "gallery"), len(others))
     sections = [*others[:position], gallery, *others[position:]]
     return route.model_copy(update={"sections": sections})
+
+
+# --- Manual markers (5.5) -----------------------------------------------------------------------
+
+
+def manual_path(data_dir: Path) -> Path:
+    return data_dir / "services" / "manual.geojson"
+
+
+def read_manual(data_dir: Path) -> list[ManualMarker]:
+    """The markers of services/manual.geojson; empty without the file."""
+    return read_features(manual_path(data_dir), ManualMarker)
+
+
+def marker_key(marker: ManualMarker) -> str:
+    """What identifies a marker: its id for a new point, the target for a correction or hiding."""
+    return marker.id or marker.replaces or ""
+
+
+def save_manual(data_dir: Path, markers: list[ManualMarker]) -> Path:
+    """Write services/manual.geojson, ordered by marker key. Snapshots are never touched."""
+    path = manual_path(data_dir)
+    features = [m.to_feature() for m in sorted(markers, key=marker_key)]
+    write_json(path, {"type": "FeatureCollection", "features": features})
+    return path
+
+
+def manual_id(name: str, taken: Iterable[str] = ()) -> str:
+    """`manual:<slug>` of the name, with -2, -3 … appended until it is not in `taken`."""
+    base = f"manual:{slugify(name) or 'point'}"
+    taken = set(taken)
+    candidate, n = base, 1
+    while candidate in taken:
+        n += 1
+        candidate = f"{base}-{n}"
+    return candidate

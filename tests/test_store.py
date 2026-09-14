@@ -6,7 +6,7 @@ import pytest
 
 from manager import store
 from manager.build.read import read_source_data
-from manager.models import GallerySection, Route, TextSection, Theme
+from manager.models import GallerySection, ManualMarker, Route, TextSection, Theme
 
 GPX = (
     b'<?xml version="1.0"?><gpx version="1.1" creator="t" '
@@ -173,3 +173,48 @@ def test_with_gallery_sets_replaces_and_removes_the_section():
     assert isinstance(replaced.sections[1], GallerySection)
     assert replaced.sections[1].media == ["media/b.jpg"]
     assert [s.type for s in store.with_gallery(replaced, []).sections] == ["text"]
+
+
+# --- Manual markers (5.5) ----------------------------------------------------------------------
+
+
+def test_manual_markers_round_trip_in_key_order(data):
+    hide = ManualMarker(replaces="osm:node/2", hidden=True)
+    fix = ManualMarker(replaces="osm:node/1", name={"fi": "Kahvila"}, url="https://x.fi")
+    point = ManualMarker(
+        id="manual:laavu",
+        name={"fi": "Laavu"},
+        category="lean_to",
+        source="manual",
+        location=(25.7, 66.5),
+    )
+    path = store.save_manual(data, [point, hide, fix])
+    assert path == data / "services" / "manual.geojson"
+    collection = json.loads(path.read_text(encoding="utf-8"))
+    assert [f["properties"].get("replaces") for f in collection["features"]] == [
+        None,
+        "osm:node/1",
+        "osm:node/2",
+    ]
+    assert collection["features"][0]["geometry"] == {"type": "Point", "coordinates": [25.7, 66.5]}
+    assert collection["features"][1]["geometry"] is None
+    assert "hidden" not in collection["features"][1]["properties"]  # only written when true
+    assert collection["features"][2]["properties"] == {
+        "source": "manual",
+        "replaces": "osm:node/2",
+        "hidden": True,
+    }
+    read = store.read_manual(data)
+    assert read == [point, fix, hide]
+    assert read[1].overrides() == {"name": {"fi": "Kahvila"}, "url": "https://x.fi"}
+
+
+def test_read_manual_without_file_is_empty(tmp_path):
+    assert store.read_manual(tmp_path) == []
+
+
+def test_manual_id_is_a_slug_and_unique():
+    assert store.manual_id("Kahvila Napa") == "manual:kahvila-napa"
+    taken = ["manual:kahvila-napa", "manual:kahvila-napa-2"]
+    assert store.manual_id("Kahvila Napa", taken) == "manual:kahvila-napa-3"
+    assert store.manual_id("???") == "manual:point"

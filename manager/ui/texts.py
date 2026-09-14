@@ -319,7 +319,31 @@ MANUAL_MARKER_COLUMNS = {
     "replaces": "korvaa",
     "hidden": "piilotettu",
 }
-MANUAL_MARKERS_MAP_LATER = "Pisteiden lisäys kartalta tulee vaiheessa V3b."
+MANUAL_MARKERS_MAP_LATER = (
+    "Pisteiden lisäys kartalta tulee vaiheessa V3b; koordinaatit kirjoitetaan tai kopioidaan "
+    "olemassa olevasta pisteestä."
+)
+MANUAL_NEW_HEADER = "Uusi piste"
+MANUAL_NAME = "Nimi"
+MANUAL_CATEGORY = "Kategoria"
+MANUAL_LON = "Pituusaste (lon)"
+MANUAL_LAT = "Leveysaste (lat)"
+MANUAL_URL = "Verkko-osoite"
+MANUAL_OPENING_HOURS = "Aukioloajat"
+MANUAL_DESCRIPTION = "Kuvaus"
+MANUAL_KEEP_HINT = "Tyhjä kenttä säilyttää alkuperäisen arvon."
+BUTTON_SAVE_MARKER = "Tallenna piste"
+MANUAL_NAME_REQUIRED = "Anna pisteelle nimi."
+MANUAL_FIX_HEADER = "Korjaa tai piilota"
+MANUAL_FIX_TARGET = "Palvelupiste"
+MANUAL_FIX_NONE = "Ei palvelupisteitä: hae ensin tilannekuva."
+MANUAL_HIDE = "Piilota"
+BUTTON_SAVE_FIX = "Tallenna korjaus"
+MANUAL_FIX_NO_CHANGES = "Ei muutettavaa: täytä kenttä tai rastita Piilota."
+MANUAL_DELETE = "Poista merkintä"
+BUTTON_DELETE_MARKER = "Poista"
+MANUAL_SAVED = "Käsin tehdyt merkinnät tallennettu: {count} kpl ({path})"
+RUN_BUILD_REMINDER = "Aja build, jotta muutos näkyy julkaisudatassa."
 SERVICE_CATEGORY_NAMES = {
     "cafe": "kahvila",
     "restaurant": "ravintola",

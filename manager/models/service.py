@@ -77,6 +77,18 @@ class ManualMarker(BaseModel):
             properties["location"] = _location(feature)
         return cls.model_validate(properties)
 
+    def to_feature(self) -> dict[str, Any]:
+        """The row of manual.geojson: only what was given (P11); a correction has no geometry."""
+        properties = self.model_dump(mode="json", exclude_none=True, exclude={"location"})
+        if not self.hidden:
+            del properties["hidden"]
+        location = list(self.location) if self.location else None
+        return {
+            "type": "Feature",
+            "properties": properties,
+            "geometry": {"type": "Point", "coordinates": location} if location else None,
+        }
+
     def overrides(self) -> dict[str, Any]:
         """The fields a correction sets on its target: what was given, minus the marker keys.
         The target keeps its id and source."""

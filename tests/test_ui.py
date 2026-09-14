@@ -1,12 +1,15 @@
 """Streamlit pages run without exceptions and the build page builds the fixture data."""
 
 import json
+import shutil
 from datetime import UTC, datetime
 from pathlib import Path
 
 import pytest
 from streamlit.testing.v1 import AppTest
 
+from manager import store
+from manager.sources import osm
 from manager.ui import texts
 from manager.validate import CHECKS
 
@@ -323,9 +326,17 @@ OSM_SAMPLE = Path(__file__).parent / "fixtures" / "osm" / "overpass_sample.json"
 def test_services_page_with_empty_snapshot(ui_env):
     at = AppTest.from_file(str(UI / "views" / "services.py"), default_timeout=10).run()
     assert not at.exception, at.exception
-    assert [h.value for h in at.subheader] == ["OSM", "Käsin tehdyt merkinnät"]
-    assert "Ei tilannekuvaa" in [c.value for c in at.caption]
-    assert [b.label for b in at.button] == ["Hae OSM:stä"]
+    assert [h.value for h in at.subheader] == [
+        "OSM",
+        "Uusi piste",
+        "Korjaa tai piilota",
+        "Käsin tehdyt merkinnät",
+    ]
+    captions = [c.value for c in at.caption]
+    assert "Ei tilannekuvaa" in captions
+    assert "Ei palvelupisteitä: hae ensin tilannekuva." in captions
+    assert "Ei käsin tehtyjä merkintöjä." in captions
+    assert [b.label for b in at.button] == ["Hae OSM:stä", "Tallenna piste"]
     assert not at.metric and not at.dataframe
 
 
@@ -357,3 +368,76 @@ def test_services_page_fetch_shows_diff_and_accept_writes_snapshot(ui_env, monke
     assert at.success[0].value.startswith("Tilannekuva tallennettu: ")
     assert not at.metric  # the fetched list is gone; the snapshot caption shows the count
     assert any(c.value.endswith("5 pistettä") for c in at.caption)
+
+
+FX_OSM = Path(__file__).parent / "fixtures" / "fx-full" / "services" / "osm.geojson"
+
+
+def test_services_page_adds_hides_and_deletes_manual_markers(ui_env):
+    shutil.copy(FX_OSM, ui_env / "services" / "osm.geojson")
+    at = AppTest.from_file(str(UI / "views" / "services.py"), default_timeout=10).run()
+    assert not at.exception, at.exception
+    # The new point form starts at the centre of the project area (P11: no invented place).
+    assert at.number_input(key="new_lon").value == pytest.approx(25.8)
+    assert at.number_input(key="new_lat").value == pytest.approx(66.5)
+    assert at.selectbox(key="fix_target").options == [
+        "osm:node/102 · juomavesi",
+        "osm:node/103 · Vaattungin laavu · laavu",
+    ]
+
+    at.button(key="FormSubmitter:new_marker-Tallenna piste").click().run()
+    assert at.error[0].value == "Anna pisteelle nimi."
+    assert store.read_manual(ui_env) == []  # nothing written
+
+    at.text_input(key="new_name_fi").set_value("Kahvila Napa")
+    at.selectbox(key="new_category").select("cafe")
+    at.number_input(key="new_lon").set_value(25.7294)
+    at.number_input(key="new_lat").set_value(66.5031)
+    at.text_input(key="new_url").set_value("https://napa.example")
+    at.button(key="FormSubmitter:new_marker-Tallenna piste").click().run()
+    assert not at.exception, at.exception
+    assert at.success[0].value.startswith("Käsin tehdyt merkinnät tallennettu: 1 kpl")
+    assert "Aja build, jotta muutos näkyy julkaisudatassa." in [c.value for c in at.caption]
+    markers = store.read_manual(ui_env)
+    assert [m.id for m in markers] == ["manual:kahvila-napa"]
+    assert markers[0].location == (25.7294, 66.5031) and markers[0].url == "https://napa.example"
+    assert markers[0].category == "cafe" and markers[0].name == {"fi": "Kahvila Napa"}
+
+    at.selectbox(key="fix_target").select("osm:node/103").run()
+    at.button(key="FormSubmitter:fix_marker-Tallenna korjaus").click().run()
+    assert at.error[0].value.startswith("Ei muutettavaa")
+    at.checkbox(key="hide_osm:node/103").check()
+    at.button(key="FormSubmitter:fix_marker-Tallenna korjaus").click().run()
+    assert not at.exception, at.exception
+    assert at.success[0].value.startswith("Käsin tehdyt merkinnät tallennettu: 2 kpl")
+    hidden = next(m for m in store.read_manual(ui_env) if m.replaces == "osm:node/103")
+    assert hidden.hidden and hidden.id is None
+    assert at.selectbox(key="fix_target").options == ["osm:node/102 · juomavesi"]
+    assert len(osm.read_snapshot(ui_env)) == 2  # the snapshot is never touched
+
+    table = at.dataframe[-1].value
+    assert list(table.columns) == ["id", "korvaa", "piilotettu", "nimi", "kategoria"]
+    assert [list(r) for _, r in table.iterrows()] == [
+        ["manual:kahvila-napa", "", False, "Kahvila Napa", "kahvila"],
+        ["", "osm:node/103", True, "", ""],
+    ]
+
+    # A correction replaces the marker of the same target; a missing target is listed below.
+    at.selectbox(key="fix_target").select("osm:node/102").run()
+    at.text_input(key="fix_name_osm:node/102_fi").set_value("Lähde")
+    at.selectbox(key="fix_category_osm:node/102").select("hut")
+    at.button(key="FormSubmitter:fix_marker-Tallenna korjaus").click().run()
+    assert not at.exception, at.exception
+    fixed = next(m for m in store.read_manual(ui_env) if m.replaces == "osm:node/102")
+    assert fixed.overrides() == {"name": {"fi": "Lähde"}, "category": "hut"}
+    assert "osm:node/102 · Lähde · tupa" in at.selectbox(key="fix_target").options
+    assert at.text_input(key="fix_name_osm:node/102_fi").value == "Lähde"  # prefilled
+
+    at.selectbox(key="delete_marker").select("osm:node/103")
+    at.button(key="delete_marker_button").click().run()
+    assert not at.exception, at.exception
+    assert [store.marker_key(m) for m in store.read_manual(ui_env)] == [
+        "manual:kahvila-napa",
+        "osm:node/102",
+    ]
+    assert len(at.selectbox(key="fix_target").options) == 2  # node/103 is back
