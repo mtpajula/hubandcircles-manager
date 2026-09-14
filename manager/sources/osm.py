@@ -7,7 +7,6 @@ loss); the Streamlit page lets the editor accept it, the CLI writes it directly.
 
 import json
 import urllib.request
-from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -15,6 +14,7 @@ from manager.build import write_json
 from manager.build.read import read_features
 from manager.build.services import services_collection
 from manager.models import Bbox, Service
+from manager.sources.snapshot import Diff, diff  # noqa: F401  (re-exported for callers)
 
 OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 USER_AGENT = "hubandcircles-manager"
@@ -134,36 +134,3 @@ def write_snapshot(data_dir: Path, services: list[Service]) -> Path:
 def read_snapshot(data_dir: Path) -> list[Service]:
     """The services of services/osm.geojson; empty without a snapshot."""
     return read_features(snapshot_path(data_dir), Service)
-
-
-@dataclass
-class Diff:
-    added: list[Service] = field(default_factory=list)
-    removed: list[Service] = field(default_factory=list)
-    changed: list[Service] = field(default_factory=list)  # the new version
-    unchanged: list[Service] = field(default_factory=list)
-
-    def summary(self) -> str:
-        return (
-            f"added {len(self.added)}, removed {len(self.removed)}, changed {len(self.changed)},"
-            f" unchanged {len(self.unchanged)}"
-        )
-
-
-def _content(service: Service) -> dict:
-    return service.model_dump(exclude={"fetched_at"})
-
-
-def diff(old: list[Service], new: list[Service]) -> Diff:
-    """Change view against the previous snapshot by id (7.6); fetched_at does not count."""
-    before = {s.id: s for s in old}
-    result = Diff(removed=[s for s in old if s.id not in {n.id for n in new}])
-    for service in new:
-        previous = before.get(service.id)
-        if previous is None:
-            result.added.append(service)
-        elif _content(previous) != _content(service):
-            result.changed.append(service)
-        else:
-            result.unchanged.append(service)
-    return result

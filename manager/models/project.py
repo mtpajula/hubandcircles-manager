@@ -27,6 +27,7 @@ class Project(BaseModel):
     name: LangText
     subtitle: LangText
     area: Bbox
+    municipality: str | None = None  # city filter of the Visit Finland importer (7.6)
     languages: list[str]
     default_language: str
     default_theme: str

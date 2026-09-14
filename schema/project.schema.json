@@ -109,6 +109,18 @@
       "title": "Languages",
       "type": "array"
     },
+    "municipality": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Municipality"
+    },
     "name": {
       "additionalProperties": {
         "type": "string"

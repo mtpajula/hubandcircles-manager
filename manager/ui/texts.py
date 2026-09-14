@@ -289,13 +289,26 @@ BUTTON_LIPAS_CREATE = "Luo puuttuvat reittikansiot"
 LIPAS_MATCHING_LATER = "Jäljen vertailu Lipas-reitteihin tulee vaiheessa V6."
 
 # Services page (ADMIN-UI-SPEC section 4)
-SERVICES_OSM_HEADER = "OSM"
 SERVICES_SNAPSHOT_AT = "Edellinen tilannekuva {when} · {count} pistettä"
 SERVICES_NO_SNAPSHOT = "Ei tilannekuvaa"
-BUTTON_OSM_FETCH = "Hae OSM:stä"
-OSM_FETCHING = "Haetaan OSM:stä (Overpass)…"
-OSM_FETCHED = "OSM haettu: {count} pistettä"
-OSM_FETCH_FAILED = "OSM-haku epäonnistui"
+OSM_LABELS = {
+    "header": "OSM",
+    "fetch": "Hae OSM:stä",
+    "fetching": "Haetaan OSM:stä (Overpass)…",
+    "fetched": "OSM haettu: {count} pistettä",
+    "failed": "OSM-haku epäonnistui",
+}
+VF_LABELS = {
+    "header": "Visit Finland",
+    "fetch": "Hae Visit Finlandista",
+    "fetching": "Haetaan Visit Finland DataHubista…",
+    "fetched": "Visit Finland haettu: {count} pistettä",
+    "failed": "Visit Finland -haku epäonnistui",
+}
+SERVICES_VF_KEY_MISSING = "Visit Finland -haku ei ole käytössä: VF_API_KEY puuttuu .env:stä."
+SERVICES_VF_MUNICIPALITY_MISSING = (
+    "Visit Finland -haku ei ole käytössä: project.json:sta puuttuu municipality."
+)
 METRIC_ADDED = "Uusia"
 METRIC_REMOVED = "Poistuneita"
 METRIC_CHANGED = "Muuttuneita"
@@ -309,7 +322,6 @@ MANUAL_TARGET_MISSING = (
 )
 BUTTON_ACCEPT_SNAPSHOT = "Hyväksy tilannekuva"
 SNAPSHOT_ACCEPTED = "Tilannekuva tallennettu: {path}"
-SERVICES_VF_LATER = "Visit Finland -tuoja tulee vaiheessa V3."
 MANUAL_MARKERS_HEADER = "Käsin tehdyt merkinnät"
 MANUAL_MARKERS_NONE = "Ei käsin tehtyjä merkintöjä."
 MANUAL_MARKER_COLUMNS = {

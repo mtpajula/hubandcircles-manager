@@ -1,7 +1,7 @@
-"""Services page (ADMIN-UI-SPEC section 4), limited to the OSM source and stock Streamlit.
+"""Services page (ADMIN-UI-SPEC section 4), OSM and Visit Finland sources, stock Streamlit.
 
-Thin: the fetch calls manager.sources.osm, the diff is osm.diff, and nothing is written before
-the snapshot is accepted (7.6). The fetched list waits in st.session_state until then.
+Thin: the fetch calls manager.sources.osm / visitfinland, the diff is snapshot.diff, and nothing
+is written before the snapshot is accepted (7.6). The fetched list waits in st.session_state.
 Manual markers (5.5) are edited below the OSM block and written by store.save_manual; no map
 (V3b), so coordinates are typed or copied from an existing point.
 """
@@ -18,12 +18,10 @@ from manager.build.services import merge
 from manager.models import ManualMarker
 from manager.models.identifiers import SERVICE_CATEGORIES
 from manager.settings import data_dir, load_env
-from manager.sources import osm
+from manager.sources import osm, visitfinland
 from manager.ui import texts
 from manager.ui.widgets import lang_inputs, lang_text
 from manager.validate.manual_markers import marker_warnings
-
-FETCHED = "osm_fetched"  # session key of the fetched, not yet accepted, list
 
 load_env()
 st.title(texts.PAGE_SERVICES)
@@ -48,71 +46,103 @@ def name_of(service) -> str:
     return (service.name or {}).get("fi") or (service.name or {}).get("en") or ""
 
 
-# --- OSM ---------------------------------------------------------------------------------------
-st.subheader(texts.SERVICES_OSM_HEADER)
-snapshot = osm.snapshot_path(source)
-if snapshot.is_file():
-    when = datetime.fromtimestamp(snapshot.stat().st_mtime, UTC).astimezone()
-    st.caption(
-        texts.SERVICES_SNAPSHOT_AT.format(
-            when=when.strftime("%d.%m.%Y %H:%M"), count=len(data.osm_services)
+# --- Importer snapshots (7.6): OSM and Visit Finland behave the same ------------------------
+def source_block(source_id: str, previous: list, module, fetch, labels: dict[str, str]) -> None:
+    """Fetch → metrics and change table → accept. `fetch` returns the raw answer, None when the
+    source is disabled (the caption says why); nothing is written before the accept button."""
+    fetched_key = f"{source_id}_fetched"  # session key of the fetched, not yet accepted, list
+    st.subheader(labels["header"])
+    snapshot = module.snapshot_path(source)
+    if snapshot.is_file():
+        when = datetime.fromtimestamp(snapshot.stat().st_mtime, UTC).astimezone()
+        st.caption(
+            texts.SERVICES_SNAPSHOT_AT.format(
+                when=when.strftime("%d.%m.%Y %H:%M"), count=len(previous)
+            )
         )
-    )
-else:
-    st.caption(texts.SERVICES_NO_SNAPSHOT)
-
-if st.button(texts.BUTTON_OSM_FETCH, key="osm_fetch"):
-    with st.status(texts.OSM_FETCHING) as status:
-        try:
-            fetched = osm.parse(osm.fetch(data.project.area))
-        except (ValueError, KeyError, OSError) as e:
-            status.update(label=texts.OSM_FETCH_FAILED, state="error")
-            st.error(str(e))
-        else:
-            st.session_state[FETCHED] = fetched
-            status.update(label=texts.OSM_FETCHED.format(count=len(fetched)), state="complete")
-
-if FETCHED in st.session_state:
-    fetched = st.session_state[FETCHED]
-    changes = osm.diff(data.osm_services, fetched)
-    columns = st.columns(4)
-    columns[0].metric(texts.METRIC_ADDED, f"+{len(changes.added)}")
-    columns[1].metric(texts.METRIC_REMOVED, f"−{len(changes.removed)}")
-    columns[2].metric(texts.METRIC_CHANGED, str(len(changes.changed)))
-    columns[3].metric(texts.METRIC_TOTAL, str(len(fetched)))
-    rows = [
-        {
-            texts.CHANGE_COLUMNS["change"]: texts.CHANGE_NAMES[kind],
-            texts.CHANGE_COLUMNS["name"]: name_of(s),
-            texts.CHANGE_COLUMNS["category"]: texts.SERVICE_CATEGORY_NAMES.get(
-                s.category, s.category
-            ),
-            texts.CHANGE_COLUMNS["id"]: s.id,
-        }
-        for kind, group in (
-            ("added", changes.added),
-            ("removed", changes.removed),
-            ("changed", changes.changed),
-        )
-        for s in group
-    ]
-    st.markdown(f"**{texts.CHANGES_HEADER}**")
-    if rows:
-        st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
     else:
-        st.caption(texts.NO_CHANGES)
-    # A correction whose target disappears with this snapshot (7.6).
-    ids = {s.id for s in [*fetched, *data.visitfinland_services]}
-    for marker in data.manual_markers:
-        if marker.replaces is not None and marker.replaces not in ids:
-            st.warning(texts.MANUAL_TARGET_MISSING.format(target=marker.replaces))
-    if st.button(texts.BUTTON_ACCEPT_SNAPSHOT, key="osm_accept", type="primary"):
-        path = osm.write_snapshot(source, fetched)
-        del st.session_state[FETCHED]
-        st.session_state["flash"] = texts.SNAPSHOT_ACCEPTED.format(path=path)
-        st.rerun()
-st.caption(texts.CLI_EQUIVALENT.format(command="python -m manager fetch osm"))
-st.caption(texts.SERVICES_VF_LATER)
+        st.caption(texts.SERVICES_NO_SNAPSHOT)
+
+    if st.button(labels["fetch"], key=f"{source_id}_fetch", disabled=fetch is None):
+        with st.status(labels["fetching"]) as status:
+            try:
+                fetched = module.parse(fetch())
+            except (ValueError, KeyError, OSError, visitfinland.SourceError) as e:
+                status.update(label=labels["failed"], state="error")
+                st.error(str(e))
+            else:
+                st.session_state[fetched_key] = fetched
+                status.update(label=labels["fetched"].format(count=len(fetched)), state="complete")
+
+    if fetched_key in st.session_state:
+        fetched = st.session_state[fetched_key]
+        changes = module.diff(previous, fetched)
+        columns = st.columns(4)
+        columns[0].metric(texts.METRIC_ADDED, f"+{len(changes.added)}")
+        columns[1].metric(texts.METRIC_REMOVED, f"−{len(changes.removed)}")
+        columns[2].metric(texts.METRIC_CHANGED, str(len(changes.changed)))
+        columns[3].metric(texts.METRIC_TOTAL, str(len(fetched)))
+        rows = [
+            {
+                texts.CHANGE_COLUMNS["change"]: texts.CHANGE_NAMES[kind],
+                texts.CHANGE_COLUMNS["name"]: name_of(s),
+                texts.CHANGE_COLUMNS["category"]: texts.SERVICE_CATEGORY_NAMES.get(
+                    s.category, s.category
+                ),
+                texts.CHANGE_COLUMNS["id"]: s.id,
+            }
+            for kind, group in (
+                ("added", changes.added),
+                ("removed", changes.removed),
+                ("changed", changes.changed),
+            )
+            for s in group
+        ]
+        st.markdown(f"**{texts.CHANGES_HEADER}**")
+        if rows:
+            st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
+        else:
+            st.caption(texts.NO_CHANGES)
+        # A correction whose target disappears with this snapshot (7.6).
+        kept = [
+            s for s in [*data.osm_services, *data.visitfinland_services] if s.source != source_id
+        ]
+        ids = {s.id for s in [*fetched, *kept]}
+        for marker in data.manual_markers:
+            if marker.replaces is not None and marker.replaces not in ids:
+                st.warning(texts.MANUAL_TARGET_MISSING.format(target=marker.replaces))
+        if st.button(texts.BUTTON_ACCEPT_SNAPSHOT, key=f"{source_id}_accept", type="primary"):
+            path = module.write_snapshot(source, fetched)
+            del st.session_state[fetched_key]
+            st.session_state["flash"] = texts.SNAPSHOT_ACCEPTED.format(path=path)
+            st.rerun()
+    st.caption(texts.CLI_EQUIVALENT.format(command=f"python -m manager fetch {source_id}"))
+
+
+source_block(
+    "osm",
+    data.osm_services,
+    osm,
+    lambda: osm.fetch(data.project.area),
+    texts.OSM_LABELS,
+)
+
+city = data.project.municipality
+try:
+    vf_url, vf_key = visitfinland.api_settings()
+except visitfinland.SourceError:
+    vf_url = vf_key = None
+if vf_key is None:
+    st.caption(texts.SERVICES_VF_KEY_MISSING)
+elif not city:
+    st.caption(texts.SERVICES_VF_MUNICIPALITY_MISSING)
+source_block(
+    "visitfinland",
+    data.visitfinland_services,
+    visitfinland,
+    (lambda: visitfinland.fetch(city, url=vf_url, key=vf_key)) if vf_key and city else None,
+    texts.VF_LABELS,
+)
 
 # --- Manual markers (5.5) ----------------------------------------------------------------------
 markers = data.manual_markers

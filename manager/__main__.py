@@ -10,7 +10,7 @@ from manager.publish import PublishError, publish
 from manager.publish.preview import serve
 from manager.schema import generate
 from manager.settings import ROOT, load_env
-from manager.sources import lipas, osm
+from manager.sources import lipas, osm, visitfinland
 from manager.state import mark_built, mark_published
 
 
@@ -68,22 +68,31 @@ def main(argv: list[str] | None = None) -> int:
 
 def fetch_services(args: argparse.Namespace) -> int:
     try:
-        area = read_source_data(args.data).project.area
-        previous = osm.read_snapshot(args.data)
+        data = read_source_data(args.data)
     except BuildError as e:
         print(f"Fix the source data first:\n{e}", file=sys.stderr)
         return 2
     try:
-        services = osm.parse(osm.fetch(area))
-    except (ValueError, KeyError, OSError) as e:
-        print(f"OSM fetch aborted:\n{e}", file=sys.stderr)
+        if args.source == "osm":
+            previous, write = data.osm_services, osm.write_snapshot
+            services = osm.parse(osm.fetch(data.project.area))
+        else:
+            city = args.city or data.project.municipality
+            if not city:
+                print("Pass --city or set project.municipality in project.json", file=sys.stderr)
+                return 2
+            url, key = visitfinland.api_settings()
+            previous, write = data.visitfinland_services, visitfinland.write_snapshot
+            services = visitfinland.parse(visitfinland.fetch(city, url=url, key=key))
+    except (ValueError, KeyError, OSError, visitfinland.SourceError) as e:
+        print(f"{args.source} fetch aborted:\n{e}", file=sys.stderr)
         return 1
     changes = osm.diff(previous, services)
-    print(f"OSM: {len(services)} services; {changes.summary()}")
+    print(f"{args.source}: {len(services)} services; {changes.summary()}")
     for label, group in (("+", changes.added), ("-", changes.removed), ("~", changes.changed)):
         for s in group:
             print(f"  {label} {s.id}  {s.category}  {(s.name or {}).get('fi', '')}")
-    print(f"Snapshot: {osm.write_snapshot(args.data, services)}")
+    print(f"Snapshot: {write(args.data, services)}")
     return 0
 
 

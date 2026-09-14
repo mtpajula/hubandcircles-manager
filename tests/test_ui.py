@@ -323,20 +323,28 @@ def test_themes_page_saves_theme_and_project(ui_env):
 OSM_SAMPLE = Path(__file__).parent / "fixtures" / "osm" / "overpass_sample.json"
 
 
-def test_services_page_with_empty_snapshot(ui_env):
+def test_services_page_with_empty_snapshot(ui_env, monkeypatch):
+    monkeypatch.setenv("VF_API_KEY", "")  # empty counts as missing and shadows a real .env
     at = AppTest.from_file(str(UI / "views" / "services.py"), default_timeout=10).run()
     assert not at.exception, at.exception
     assert [h.value for h in at.subheader] == [
         "OSM",
+        "Visit Finland",
         "Uusi piste",
         "Korjaa tai piilota",
         "Käsin tehdyt merkinnät",
     ]
     captions = [c.value for c in at.caption]
-    assert "Ei tilannekuvaa" in captions
+    assert captions.count("Ei tilannekuvaa") == 2
     assert "Ei palvelupisteitä: hae ensin tilannekuva." in captions
     assert "Ei käsin tehtyjä merkintöjä." in captions
-    assert [b.label for b in at.button] == ["Hae OSM:stä", "Tallenna piste"]
+    assert "Visit Finland -haku ei ole käytössä: VF_API_KEY puuttuu .env:stä." in captions
+    assert [b.label for b in at.button] == [
+        "Hae OSM:stä",
+        "Hae Visit Finlandista",
+        "Tallenna piste",
+    ]
+    assert at.button(key="visitfinland_fetch").disabled
     assert not at.metric and not at.dataframe
 
 
@@ -368,6 +376,62 @@ def test_services_page_fetch_shows_diff_and_accept_writes_snapshot(ui_env, monke
     assert at.success[0].value.startswith("Tilannekuva tallennettu: ")
     assert not at.metric  # the fetched list is gone; the snapshot caption shows the count
     assert any(c.value.endswith("5 pistettä") for c in at.caption)
+
+
+VF_SAMPLE = Path(__file__).parent / "fixtures" / "visitfinland" / "products_sample.json"
+
+
+def test_services_page_visit_finland_needs_key_and_municipality(ui_env, monkeypatch):
+    from manager.sources import visitfinland
+
+    monkeypatch.setenv("VF_API_KEY", "secret")
+    monkeypatch.setattr(visitfinland, "fetch", lambda *a, **kw: pytest.fail("must not fetch"))
+    at = AppTest.from_file(str(UI / "views" / "services.py"), default_timeout=10).run()
+    assert not at.exception, at.exception
+    assert at.button(key="visitfinland_fetch").disabled
+    assert "Visit Finland -haku ei ole käytössä: project.json:sta puuttuu municipality." in [
+        c.value for c in at.caption
+    ]
+
+
+def test_services_page_visit_finland_fetch_and_accept(ui_env, monkeypatch):
+    from manager.sources import visitfinland
+
+    project = json.loads((ui_env / "project.json").read_text(encoding="utf-8"))
+    project["municipality"] = "Rovaniemi"
+    (ui_env / "project.json").write_text(json.dumps(project), encoding="utf-8")
+    monkeypatch.setenv("VF_API_KEY", "secret")
+    monkeypatch.setenv("VF_API_URL", "https://vf.test/graphql")
+    products = json.loads(VF_SAMPLE.read_text(encoding="utf-8"))["data"]["product"]
+    calls = []
+
+    def fake_fetch(city, *, url, key, **kw):
+        calls.append((city, url, key))
+        return products
+
+    monkeypatch.setattr(visitfinland, "fetch", fake_fetch)
+    at = AppTest.from_file(str(UI / "views" / "services.py"), default_timeout=10).run()
+    assert not at.button(key="visitfinland_fetch").disabled
+    at.button(key="visitfinland_fetch").click().run()
+    assert not at.exception, at.exception
+    assert calls == [("Rovaniemi", "https://vf.test/graphql", "secret")]
+    assert [(m.label, m.value) for m in at.metric] == [
+        ("Uusia", "+3"),
+        ("Poistuneita", "\u22120"),
+        ("Muuttuneita", "0"),
+        ("Yhteensä", "3"),
+    ]
+    table = at.dataframe[0].value
+    assert list(table["nimi"]) == ["Ounasvaaran mökit", "Riverside Restaurant", "Pyörävuokraamo"]
+    assert list(table["kategoria"]) == ["majoitus", "ravintola", "pyörävuokraus"]
+    assert not (ui_env / "services" / "visitfinland.geojson").exists()
+
+    at.button(key="visitfinland_accept").click().run()
+    assert not at.exception, at.exception
+    assert len(visitfinland.read_snapshot(ui_env)) == 3
+    assert not (ui_env / "services" / "osm.geojson").exists()  # the OSM snapshot is untouched
+    assert at.success[0].value.startswith("Tilannekuva tallennettu: ")
+    assert any(c.value.endswith("3 pistettä") for c in at.caption)
 
 
 FX_OSM = Path(__file__).parent / "fixtures" / "fx-full" / "services" / "osm.geojson"

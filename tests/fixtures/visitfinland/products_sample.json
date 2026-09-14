@@ -1,0 +1,130 @@
+{
+  "data": {
+    "product": [
+      {
+        "id": "a1b2c3d4-0001-4000-8000-000000000001",
+        "type": "accommodation",
+        "updatedAt": "2026-02-05T10:56:43.007176+00:00",
+        "urlPrimary": "https://example.test/chalets/",
+        "postalAddresses": [
+          {
+            "city": "Rovaniemi",
+            "streetName": "Hiihtomajankuja 4",
+            "postalCode": "96400",
+            "location": "(66.501015,25.784760)"
+          }
+        ],
+        "productInformations": [
+          {
+            "language": "fi",
+            "name": "Ounasvaaran mökit",
+            "description": "Mökit Ounasvaaran laella, 2,5 km keskustasta.",
+            "url": "https://example.test/chalets/fi/"
+          },
+          {
+            "language": "en",
+            "name": "Ounasvaara Chalets",
+            "description": "Chalets on top of the Ounasvaara fell, 2.5 km from the city centre.",
+            "url": "https://example.test/chalets/en/"
+          }
+        ],
+        "productTags": [{ "tag": "cottages_villas" }],
+        "company": { "businessName": "Chalet Company", "websiteUrl": "https://example.test/" },
+        "openingHours": [
+          { "weekday": "sunday", "opens": "10:00:00", "closes": "14:00:00", "open": true },
+          { "weekday": "saturday", "opens": "10:00:00", "closes": "14:00:00", "open": true },
+          { "weekday": "friday", "opens": "08:00:00", "closes": "20:00:00", "open": true },
+          { "weekday": "thursday", "opens": "08:00:00", "closes": "20:00:00", "open": true },
+          { "weekday": "wednesday", "opens": "08:00:00", "closes": "20:00:00", "open": true },
+          { "weekday": "tuesday", "opens": null, "closes": null, "open": false },
+          { "weekday": "monday", "opens": "08:30:00", "closes": "20:00:00", "open": true }
+        ]
+      },
+      {
+        "id": "a1b2c3d4-0002-4000-8000-000000000002",
+        "type": "restaurant",
+        "updatedAt": "2026-03-01T08:00:00+00:00",
+        "urlPrimary": "",
+        "postalAddresses": [
+          {
+            "city": "Rovaniemi",
+            "streetName": "Koskikatu 1",
+            "postalCode": "96200",
+            "location": "(66.5030,25.7250)"
+          }
+        ],
+        "productInformations": [
+          {
+            "language": "en",
+            "name": "Riverside Restaurant",
+            "description": "Local food by the river.",
+            "url": ""
+          }
+        ],
+        "productTags": [{ "tag": "local_food" }],
+        "company": { "businessName": "Riverside Oy", "websiteUrl": "https://riverside.example.test" },
+        "openingHours": []
+      },
+      {
+        "id": "a1b2c3d4-0003-4000-8000-000000000003",
+        "type": "shop",
+        "updatedAt": "2026-03-01T08:00:00+00:00",
+        "urlPrimary": "https://example.test/shop",
+        "postalAddresses": [
+          { "city": "Rovaniemi", "streetName": "Rovakatu 2", "postalCode": "96200", "location": null }
+        ],
+        "productInformations": [
+          { "language": "fi", "name": "Kauppa ilman sijaintia", "description": "", "url": "" }
+        ],
+        "productTags": [],
+        "company": { "businessName": "Kauppa Oy", "websiteUrl": "" },
+        "openingHours": null
+      },
+      {
+        "id": "a1b2c3d4-0004-4000-8000-000000000004",
+        "type": "rental_service",
+        "updatedAt": "2026-03-01T08:00:00+00:00",
+        "urlPrimary": "https://example.test/bikes",
+        "postalAddresses": [
+          {
+            "city": "Rovaniemi",
+            "streetName": "Valtakatu 3",
+            "postalCode": "96200",
+            "location": "(66.5001,25.7301)"
+          }
+        ],
+        "productInformations": [
+          { "language": "fi", "name": "Pyörävuokraamo", "description": "Maastopyörät ja fatbiket.", "url": "" },
+          { "language": "en", "name": "Bike Rental", "description": "Mountain bikes and fatbikes.", "url": "" },
+          { "language": "zh-Hans", "name": "ignored", "description": "not a 2-letter code", "url": "" }
+        ],
+        "productTags": [{ "tag": "cycling_mountain_biking" }, { "tag": "guided_service" }],
+        "company": { "businessName": "Bikes Oy", "websiteUrl": "" },
+        "openingHours": [
+          { "weekday": "monday", "opens": "10:00:00", "closes": "18:00:00", "open": true },
+          { "weekday": "wednesday", "opens": "10:00:00", "closes": "18:00:00", "open": true }
+        ]
+      },
+      {
+        "id": "a1b2c3d4-0005-4000-8000-000000000005",
+        "type": "experience",
+        "updatedAt": "2026-03-01T08:00:00+00:00",
+        "urlPrimary": "https://example.test/husky",
+        "postalAddresses": [
+          {
+            "city": "Rovaniemi",
+            "streetName": "Napapiiri 1",
+            "postalCode": "96930",
+            "location": "(66.5436,25.8471)"
+          }
+        ],
+        "productInformations": [
+          { "language": "en", "name": "Husky safari", "description": "Skipped: not a service point.", "url": "" }
+        ],
+        "productTags": [{ "tag": "cycling_mountain_biking" }],
+        "company": { "businessName": "Husky Oy", "websiteUrl": "" },
+        "openingHours": []
+      }
+    ]
+  }
+}

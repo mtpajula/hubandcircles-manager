@@ -39,8 +39,13 @@ def build_parser() -> argparse.ArgumentParser:
         description="Writes the snapshot directly; the Streamlit page shows the diff first and "
         "lets you accept it separately.",
     )
-    f.add_argument("source", choices=["osm"], help="osm: Overpass query of project.area")
+    f.add_argument(
+        "source",
+        choices=["osm", "visitfinland"],
+        help="osm: Overpass query of project.area; visitfinland: DataHub products of the city",
+    )
     f.add_argument("--data", type=Path, default=env("DATA_DIR"), help="source data root")
+    f.add_argument("--city", help="visitfinland: city filter (default: project.municipality)")
 
     li = subcommands.add_parser("import-lipas", help="Lipas register → sources/lipas.geojson")
     li.add_argument("--data", type=Path, default=env("DATA_DIR"), help="source data root")
