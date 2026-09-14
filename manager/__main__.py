@@ -4,14 +4,16 @@ import argparse
 import sys
 
 from manager.build import BuildError, build
+from manager.build.layers import corridor_layers, corridor_tile_set, read_tracks
 from manager.build.read import read_source_data
 from manager.cli import build_parser
 from manager.publish import PublishError, publish
 from manager.publish.preview import serve
 from manager.schema import generate
-from manager.settings import ROOT, load_env
+from manager.settings import ROOT, env, load_env, tile_cache_dir
 from manager.sources import lipas, osm, visitfinland
 from manager.state import mark_built, mark_published
+from manager.tiles.fetch import cached_tiles, download_missing, estimate_bytes
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -62,7 +64,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "import-lipas":
         return import_lipas(args)
     if args.command == "fetch":
-        return fetch_services(args)
+        return fetch_tiles(args) if args.source == "tiles" else fetch_services(args)
     return 2
 
 
@@ -93,6 +95,45 @@ def fetch_services(args: argparse.Namespace) -> int:
         for s in group:
             print(f"  {label} {s.id}  {s.category}  {(s.name or {}).get('fi', '')}")
     print(f"Snapshot: {write(args.data, services)}")
+    return 0
+
+
+def fetch_tiles(args: argparse.Namespace) -> int:
+    """Download the corridor tiles the cache lacks, one mml_corridor layer at a time (7.3)."""
+    key = env("MML_API_KEY")
+    if not key:
+        print("Set MML_API_KEY in .env", file=sys.stderr)
+        return 2
+    try:
+        data = read_source_data(args.data)
+    except BuildError as e:
+        print(f"Fix the source data first:\n{e}", file=sys.stderr)
+        return 2
+    layers = corridor_layers(data, args.layer)
+    if not layers:
+        print("No mml_corridor layer" + (f" {args.layer}" if args.layer else ""), file=sys.stderr)
+        return 2
+    cache = tile_cache_dir()
+    tracks = read_tracks(data)
+    for layer in layers:
+        tiles = corridor_tile_set(layer, tracks, data.project.area)
+        cached = len(cached_tiles(tiles, cache, layer.source.layer))
+        estimate = estimate_bytes(len(tiles), cache, layer.source.layer)
+        print(
+            f"layer {layer.id}: {len(tiles)} tiles needed, {cached} cached,"
+            f" estimated size {estimate / 1e6:.1f} MB"
+        )
+        report = download_missing(
+            tiles,
+            cache,
+            layer.source.layer,
+            key=key,
+            progress=lambda done, total: print(f"  {done} / {total} tiles"),
+        )
+        print(f"layer {layer.id}: {report.text()}")
+        for line in report.errors[:10]:
+            print(f"  ! {line}")
+    print(f"Cache: {cache}")
     return 0
 
 

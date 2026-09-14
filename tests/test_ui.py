@@ -617,3 +617,23 @@ def test_services_page_adds_hides_and_deletes_manual_markers(ui_env):
         "osm:node/102",
     ]
     assert len(at.selectbox(key="fix_target").options) == 2  # node/103 is back
+
+
+def test_layers_page_shows_corridor_tile_state(ui_env, tmp_path, monkeypatch):
+    from .test_layers import TOPO, _fake_cache, _write_layer
+
+    _write_layer(ui_env, TOPO)
+    _fake_cache(tmp_path / "cache", [(12, 2340, 1024)])
+    monkeypatch.setenv("TILE_CACHE_DIR", str(tmp_path / "cache"))
+    monkeypatch.delenv("MML_API_KEY", raising=False)
+    monkeypatch.setattr("manager.settings.load_env", lambda *a, **k: None)  # not the repo .env
+    at = AppTest.from_file(str(UI / "views" / "layers.py"), default_timeout=10).run()
+    assert not at.exception, at.exception
+    captions = [c.value for c in at.caption]
+    status = [c for c in captions if c.endswith(" välimuistissa")]
+    assert len(status) == 1 and status[0].endswith("tiiltä tarvitaan · 1 välimuistissa")
+    assert int(status[0].split(" ")[0]) > 1
+    assert texts.TILES_KEY_MISSING in captions
+    assert "Komentorivillä: `python -m manager fetch tiles --layer topo`" in captions
+    assert at.button(key="fetch_tiles_topo").label == "Hae puuttuvat tiilet"
+    assert at.button(key="fetch_tiles_topo").disabled

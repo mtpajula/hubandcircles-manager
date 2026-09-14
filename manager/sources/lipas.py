@@ -13,7 +13,7 @@ from pathlib import Path
 import gpxpy.gpx
 
 from manager.build import write_json
-from manager.build.routes import to_deg, to_m
+from manager.build.projection import to_deg, to_m
 from manager.models import Route, TextSection
 from manager.slug import MAX_ID_LENGTH, slugify  # noqa: F401  (re-exported for callers)
 

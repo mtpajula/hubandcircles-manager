@@ -26,6 +26,7 @@ uv run python -m manager build                  # source data → dist/
 uv run python -m manager preview --frontend ../hubandcircles-ui/dist   # http://127.0.0.1:8765
 uv run python -m manager publish --frontend ../hubandcircles-ui/dist   # to publish.json targets
 uv run python -m manager import-lipas [--create-routes]                # Lipas register snapshot
+uv run python -m manager fetch tiles [--layer ID]   # MML corridor tiles into TILE_CACHE_DIR (.tiles/)
 uv run python -m manager schema                 # regenerate schema/ from the pydantic models
 ```
 

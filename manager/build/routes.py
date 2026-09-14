@@ -6,12 +6,12 @@ from pathlib import Path
 
 import gpxpy
 import gpxpy.gpx
-from pyproj import Geod, Transformer
+from pyproj import Geod
 from shapely.geometry import LineString
 from shapely.ops import transform
 
 from manager.build.errors import BuildError
-from manager.build.projection import TrackProjector, km_along_lines, to_m
+from manager.build.projection import TrackProjector, km_along_lines, to_deg, to_m
 from manager.build.segments import dominant, normalise, shares
 from manager.models import (
     Bbox,
@@ -24,8 +24,6 @@ from manager.models import (
     Theme,
 )
 
-# Same as the example in chapter 7.3: metres in EPSG:3067, degrees in WGS84.
-to_deg = Transformer.from_crs(3067, 4326, always_xy=True).transform
 geod = Geod(ellps="WGS84")
 
 PROFILE_POINTS = 200

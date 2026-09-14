@@ -104,6 +104,7 @@ TOPO_LAYER = {
         "method": "mml_corridor",
         "layer": "maastokartta",
         "buffers_m": {"13": 3000, "14": 1500, "15": 800, "16": 400},
+        "version": 1,
     },
     "publish_format": "xyz",
     "visible_in": {"themes": "*", "routes": []},

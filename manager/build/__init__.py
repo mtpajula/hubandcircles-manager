@@ -14,9 +14,10 @@ from manager.build.layers import publish_layers
 from manager.build.media import publish_media
 from manager.build.overview import overview
 from manager.build.read import read_source_data
-from manager.build.routes import process_route, published_route
+from manager.build.routes import geometry_lines, process_route, published_route
 from manager.build.services import merge, services_collection
 from manager.report import presentation_coverage
+from manager.settings import tile_cache_dir
 from manager.validate import CHECKS, Finding, check_all
 
 __all__ = ["BuildError", "BuildReport", "build", "is_stale"]
@@ -74,10 +75,11 @@ def _swap(tmp: Path, dist_dir: Path) -> None:
         shutil.rmtree(old)
 
 
-def build(data_dir: Path, dist_dir: Path) -> BuildReport:
+def build(data_dir: Path, dist_dir: Path, cache_dir: Path | None = None) -> BuildReport:
     """Write to dist.tmp, check, and only after OK replace dist/.
 
     On failure raises BuildError; dist.tmp is left on disk and the old dist/ is untouched.
+    `cache_dir`: the XYZ tile cache the corridor layers are copied from (TILE_CACHE_DIR).
     """
     source = read_source_data(data_dir)
     tmp = dist_dir.with_name(dist_dir.name + ".tmp")
@@ -110,11 +112,27 @@ def build(data_dir: Path, dist_dir: Path) -> BuildReport:
     write_json(tmp / "overview.geojson", overview(results))
     if services.services:
         write_json(tmp / "services.geojson", services_collection(services.services))
-    layers = publish_layers(source.layers, services.services, data_dir, tmp)
-    catalog = build_catalog(source, published, services=bool(services.services), layers=layers)
+    layer_output = publish_layers(
+        source.layers,
+        services.services,
+        data_dir,
+        tmp,
+        tracks=[(route, geometry_lines(result.track["geometry"])) for route, result in results],
+        area=source.project.area,
+        cache_dir=cache_dir or tile_cache_dir(),
+    )
+    layers = layer_output.layers
+    catalog = build_catalog(
+        source,
+        published,
+        services=bool(services.services),
+        layers=layers,
+        coverage=layer_output.coverage,
+    )
     write_json(tmp / "catalog.json", published_form(catalog))
 
     findings = check_all(data_dir, tmp, source, published, layers)
+    findings += [Finding("warning", w, "layers") for w in layer_output.warnings]
     errors = [x.message for x in findings if x.level == "error"]
     if errors:
         raise BuildError("\n".join(f"- {e}" for e in errors))

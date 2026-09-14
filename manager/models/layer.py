@@ -70,8 +70,10 @@ class MmlCorridorSource(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     method: Literal["mml_corridor"]
-    layer: str
+    layer: str  # WMTS layer name, e.g. `maastokartta`
     buffers_m: dict[str, int]  # zoom level -> corridor half-width in metres (7.3)
+    # Published under layers/<id>/v<version>/ (7.5); bump by hand when the map changes.
+    version: int = Field(default=1, ge=1)
 
 
 class GeotiffSource(BaseModel):
@@ -94,8 +96,10 @@ LayerSource = Annotated[
 ]
 
 # Source methods the build publishes today; the others are accepted and skipped with a warning.
-# ponytail: tile_dir, mml_corridor and geotiff arrive in V4b with manager/tiles/.
-BUILT_METHODS = frozenset({"wms_external", "xyz_external", "services", "geojson_file"})
+# ponytail: tile_dir and geotiff arrive with the GeoTIFF tiler (7.4).
+BUILT_METHODS = frozenset(
+    {"wms_external", "xyz_external", "services", "geojson_file", "mml_corridor"}
+)
 
 
 class VisibleIn(BaseModel):

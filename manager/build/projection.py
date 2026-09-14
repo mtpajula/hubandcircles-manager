@@ -8,7 +8,9 @@ from pyproj import Transformer
 from shapely.geometry import LineString, Point
 from shapely.ops import transform
 
+# Same as the example in chapter 7.3: metres in EPSG:3067, degrees in WGS84.
 to_m = Transformer.from_crs(4326, 3067, always_xy=True).transform
+to_deg = Transformer.from_crs(3067, 4326, always_xy=True).transform
 
 Coordinates = list[tuple[float, float]]  # WGS84 (lon, lat)
 

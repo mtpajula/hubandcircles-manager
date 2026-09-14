@@ -27,3 +27,9 @@ def data_dir() -> Path | None:
     """DATA_DIR as a path; a relative value is resolved against the repo root, not the cwd."""
     value = env("DATA_DIR")
     return (ROOT / value).resolve() if value else None
+
+
+def tile_cache_dir() -> Path:
+    """TILE_CACHE_DIR as a path (XYZ layout, 7.5); default `.tiles/` under the repo root."""
+    value = env("TILE_CACHE_DIR")
+    return (ROOT / value).resolve() if value else ROOT / ".tiles"

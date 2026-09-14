@@ -35,17 +35,20 @@ def build_parser() -> argparse.ArgumentParser:
 
     f = subcommands.add_parser(
         "fetch",
-        help="fetch a service source and write its snapshot into services/ (7.6)",
-        description="Writes the snapshot directly; the Streamlit page shows the diff first and "
-        "lets you accept it separately.",
+        help="fetch a service source into services/ (7.6) or corridor tiles into the cache (7.3)",
+        description="Services: writes the snapshot directly; the Streamlit page shows the diff "
+        "first and lets you accept it separately. Tiles: downloads what TILE_CACHE_DIR lacks "
+        "for every mml_corridor layer (MML_API_KEY).",
     )
     f.add_argument(
         "source",
-        choices=["osm", "visitfinland"],
-        help="osm: Overpass query of project.area; visitfinland: DataHub products of the city",
+        choices=["osm", "visitfinland", "tiles"],
+        help="osm: Overpass query of project.area; visitfinland: DataHub products of the city; "
+        "tiles: MML WMTS tiles of the route corridors",
     )
     f.add_argument("--data", type=Path, default=env("DATA_DIR"), help="source data root")
     f.add_argument("--city", help="visitfinland: city filter (default: project.municipality)")
+    f.add_argument("--layer", metavar="ID", help="tiles: only this mml_corridor layer")
 
     li = subcommands.add_parser("import-lipas", help="Lipas register → sources/lipas.geojson")
     li.add_argument("--data", type=Path, default=env("DATA_DIR"), help="source data root")

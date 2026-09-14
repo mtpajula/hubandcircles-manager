@@ -5,18 +5,21 @@ external layers: WMS (names fetched from GetCapabilities via manager.sources.wms
 Writes go through manager.store; the build derives `type` and checks the references.
 """
 
+from pathlib import Path
+
 import pandas as pd
 import streamlit as st
 from pydantic import ValidationError
 
 from manager import store
 from manager.build import BuildError
-from manager.build.layers import layer_type
+from manager.build.layers import corridor_tile_set, layer_type, read_tracks
 from manager.build.read import read_source_data
 from manager.models import Layer, VisibleIn, Wms
 from manager.models.identifiers import LAYER_SLOTS
-from manager.settings import data_dir, load_env
+from manager.settings import data_dir, env, load_env, tile_cache_dir
 from manager.sources import wms
+from manager.tiles.fetch import cached_tiles, download_missing
 from manager.ui import texts
 from manager.ui.widgets import lang_inputs, lang_text
 
@@ -150,6 +153,53 @@ if data.layers:
 else:
     st.caption(texts.LAYERS_NONE)
 
+
+# --- Corridor tiles (7.3) -----------------------------------------------------------------------
+@st.cache_data(show_spinner=False)
+def tracks_of(source_dir: str):
+    """Route tracks, parsed once per session: the corridor layers need them all."""
+    return read_tracks(read_source_data(Path(source_dir)))
+
+
+def corridor_block(layer: Layer, key: str) -> None:
+    """Caption of the cache state and the fetch button of an mml_corridor layer."""
+    tiles = corridor_tile_set(layer, tracks_of(str(source)), data.project.area)
+    cache = tile_cache_dir()
+    cached = cached_tiles(tiles, cache, layer.source.layer)
+    st.caption(texts.LAYER_TILES_STATUS.format(needed=len(tiles), cached=len(cached)))
+    api_key = env("MML_API_KEY")
+    if not api_key:
+        st.caption(texts.TILES_KEY_MISSING)
+    if st.button(
+        texts.BUTTON_FETCH_TILES,
+        key=f"fetch_tiles_{key}",
+        disabled=not api_key or len(cached) == len(tiles),
+    ):
+        with st.status(texts.TILES_FETCHING) as status:
+            report = download_missing(
+                tiles,
+                cache,
+                layer.source.layer,
+                key=api_key,
+                progress=lambda done, total: status.write(
+                    texts.TILES_PROGRESS.format(done=done, total=total)
+                ),
+            )
+            for line in report.errors[:10]:
+                status.write(line)
+            status.update(
+                label=texts.TILES_FETCHED.format(
+                    downloaded=report.downloaded, failed=report.failed
+                ),
+                state="error" if report.failed else "complete",
+            )
+    cli(f"python -m manager fetch tiles --layer {layer.id}")
+
+
+def cli(command: str) -> None:
+    st.caption(texts.CLI_EQUIVALENT.format(command=command))
+
+
 # --- One expander per card ----------------------------------------------------------------------
 for layer in data.layers:
     k = layer.id
@@ -158,6 +208,8 @@ for layer in data.layers:
             f"{texts.LAYER_SOURCE}: "
             f"{texts.LAYER_SOURCE_NAMES.get(layer.source.method, layer.source.method)}"
         )
+        if layer.source.method == "mml_corridor":
+            corridor_block(layer, k)
         fields = common_inputs(layer, k)
         wms_layers = None
         if layer.wms is not None:

@@ -438,6 +438,13 @@ WMS_LAYER_OPTION = "{name} · {title}"
 LAYER_NEEDS_ID_AND_NAME = "Anna tunniste ja nimi."
 LAYER_XYZ_URL_HELP = "Ulkoinen avaimeton tiilipalvelu; selain kutsuu sitä suoraan."
 LAYER_ID_TAKEN = "Tunniste {layer_id} on jo käytössä."
+# mml_corridor layers (7.3): the tile cache state and the fetch button
+LAYER_TILES_STATUS = "{needed} tiiltä tarvitaan · {cached} välimuistissa"
+BUTTON_FETCH_TILES = "Hae puuttuvat tiilet"
+TILES_KEY_MISSING = "Lisää MML_API_KEY .env-tiedostoon, niin tiilet voi hakea."
+TILES_FETCHING = "Haetaan tiiliä Maanmittauslaitokselta…"
+TILES_PROGRESS = "{done} / {total} tiiltä haettu"
+TILES_FETCHED = "Haettu {downloaded} tiiltä, {failed} epäonnistui"
 
 # Themes page
 THEMES_INTRO = (

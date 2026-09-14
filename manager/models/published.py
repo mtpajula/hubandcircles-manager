@@ -156,4 +156,4 @@ class Catalog(BaseModel):
     routes: list[RouteSummary]
     overview: str
     services: str | None = None
-    coverage: dict[str, str] = {}  # ponytail: layer id -> coverage GeoJSON, filled in V4b
+    coverage: dict[str, str] = {}  # layer id -> coverage GeoJSON of a corridor layer (7.3)

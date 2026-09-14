@@ -12,3 +12,4 @@ bundle/
 .state.json
 .preview/
 .preview.log
+.tiles/
