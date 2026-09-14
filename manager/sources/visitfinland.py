@@ -14,6 +14,7 @@ from pathlib import Path
 from manager.build import write_json
 from manager.build.read import read_features
 from manager.build.services import services_collection
+from manager.http import ssl_context
 from manager.models import Service
 from manager.settings import env
 from manager.sources.snapshot import Diff, diff  # noqa: F401  (re-exported for callers)
@@ -73,7 +74,7 @@ def _page(city: str, offset: int, url: str, key: str, timeout_s: int) -> list[di
         headers={"ocp-apim-subscription-key": key, "Content-Type": "application/json"},
         method="POST",
     )
-    with urllib.request.urlopen(request, timeout=timeout_s) as response:
+    with urllib.request.urlopen(request, timeout=timeout_s, context=ssl_context()) as response:
         answer = json.load(response)
     if answer.get("errors"):
         messages = "; ".join(str(e.get("message", e)) for e in answer["errors"])

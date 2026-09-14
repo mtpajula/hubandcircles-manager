@@ -14,6 +14,7 @@ import gpxpy.gpx
 
 from manager.build import write_json
 from manager.build.projection import to_deg, to_m
+from manager.http import ssl_context
 from manager.models import Route, TextSection
 from manager.slug import MAX_ID_LENGTH, slugify  # noqa: F401  (re-exported for callers)
 
@@ -84,7 +85,9 @@ def fetch(
                 "bbox": ",".join(str(v) for v in bbox_3067) + ",EPSG:3067",
             }
         )
-        with urllib.request.urlopen(f"{base_url}?{query}", timeout=timeout_s) as response:
+        with urllib.request.urlopen(
+            f"{base_url}?{query}", timeout=timeout_s, context=ssl_context()
+        ) as response:
             features += json.load(response)["features"]
     return features
 

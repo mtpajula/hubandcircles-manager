@@ -148,7 +148,7 @@ def test_fetch_paginates_until_a_short_page(monkeypatch):
     """No network: urlopen is replaced; 500 products then 2 → two requests, 502 products."""
     requests = []
 
-    def fake_urlopen(request, timeout):
+    def fake_urlopen(request, timeout, context=None):
         requests.append(request)
         count = 500 if len(requests) == 1 else 2
         page = [{"id": f"p{len(requests)}-{i}"} for i in range(count)]
@@ -171,7 +171,7 @@ def test_fetch_raises_on_graphql_errors(monkeypatch):
     monkeypatch.setattr(
         urllib.request,
         "urlopen",
-        lambda request, timeout: io.BytesIO(json.dumps(answer).encode("utf-8")),
+        lambda request, timeout, context=None: io.BytesIO(json.dumps(answer).encode("utf-8")),
     )
     with pytest.raises(SourceError, match="field 'foo' not found"):
         fetch("Rovaniemi", key="secret")

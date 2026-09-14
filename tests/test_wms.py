@@ -52,6 +52,8 @@ def test_capabilities_fetches_with_user_agent(monkeypatch):
         def read(self):
             return SAMPLE.read_bytes()
 
-    monkeypatch.setattr(wms.urllib.request, "urlopen", lambda request, timeout: Response(request))
+    monkeypatch.setattr(
+        wms.urllib.request, "urlopen", lambda request, timeout, context=None: Response(request)
+    )
     assert [layer.name for layer in wms.capabilities(URL)][:1] == ["Ilmakuva 2025"]
     assert seen["url"] == wms.capabilities_url(URL) and seen["agent"] == "hubandcircles-manager"

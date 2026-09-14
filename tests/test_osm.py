@@ -126,7 +126,7 @@ def test_fetch_posts_the_query_with_user_agent(monkeypatch):
 
     seen = {}
 
-    def fake_urlopen(request, timeout):
+    def fake_urlopen(request, timeout, context=None):
         seen["request"] = request
         seen["timeout"] = timeout
         return io.BytesIO(b'{"elements": [{"type": "node", "id": 1, "lat": 66.5, "lon": 25.7}]}')

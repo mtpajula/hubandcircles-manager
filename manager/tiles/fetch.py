@@ -6,9 +6,7 @@ not raised; the build publishes what the cache has.
 """
 
 import base64
-import functools
 import os
-import ssl
 import urllib.error
 import urllib.request
 from collections.abc import Callable, Iterable
@@ -16,6 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from manager.http import ssl_context
 from manager.tiles.mercator import Tile
 
 WMTS_URL = (
@@ -67,23 +66,12 @@ def estimate_bytes(tile_count: int, cache_dir: Path, layer_name: str) -> int:
     return int(tile_count * mean)
 
 
-@functools.cache
-def _ssl_context() -> ssl.SSLContext:
-    """certifi's CA bundle when available (it comes with pyproj): the Python build's default
-    CA file may not trust the CA chain MML uses."""
-    try:
-        import certifi
-    except ImportError:  # pragma: no cover
-        return ssl.create_default_context()
-    return ssl.create_default_context(cafile=certifi.where())
-
-
 def _request(url: str, key: str, timeout_s: int) -> bytes:
     token = base64.b64encode(f"{key}:".encode()).decode("ascii")
     request = urllib.request.Request(
         url, headers={"User-Agent": USER_AGENT, "Authorization": f"Basic {token}"}
     )
-    with urllib.request.urlopen(request, timeout=timeout_s, context=_ssl_context()) as response:
+    with urllib.request.urlopen(request, timeout=timeout_s, context=ssl_context()) as response:
         return response.read()
 
 

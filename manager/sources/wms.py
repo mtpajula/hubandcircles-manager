@@ -9,6 +9,7 @@ import urllib.request
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 
+from manager.http import ssl_context
 from manager.models import Bbox
 
 USER_AGENT = "hubandcircles-manager"
@@ -33,7 +34,7 @@ def capabilities_url(url: str) -> str:
 def fetch(url: str, *, timeout_s: int = 30) -> bytes:
     """Raw GetCapabilities XML of the service."""
     request = urllib.request.Request(capabilities_url(url), headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(request, timeout=timeout_s) as response:
+    with urllib.request.urlopen(request, timeout=timeout_s, context=ssl_context()) as response:
         return response.read()
 
 

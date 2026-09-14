@@ -13,6 +13,7 @@ from pathlib import Path
 from manager.build import write_json
 from manager.build.read import read_features
 from manager.build.services import services_collection
+from manager.http import ssl_context
 from manager.models import Bbox, Service
 from manager.sources.snapshot import Diff, diff  # noqa: F401  (re-exported for callers)
 
@@ -69,7 +70,7 @@ def fetch(area: Bbox, *, base_url: str = OVERPASS_URL, timeout_s: int = 120) -> 
         headers={"User-Agent": USER_AGENT, "Content-Type": "text/plain; charset=utf-8"},
         method="POST",
     )
-    with urllib.request.urlopen(request, timeout=timeout_s) as response:
+    with urllib.request.urlopen(request, timeout=timeout_s, context=ssl_context()) as response:
         return json.load(response)["elements"]
 
 
