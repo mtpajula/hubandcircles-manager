@@ -3,11 +3,14 @@
 Thin by rule 8: the main form and each expander below it build a Route and hand it to
 manager.store; metrics and km come from manager.build. A save or delete ends with st.rerun() so
 the selector and the table reflect the new state; the message survives the rerun in
-st.session_state["flash"]. No map (streamlit-folium): a segment boundary is typed as km and the
-hardest-section km is prefilled from the image EXIF.
+st.session_state["flash"]. The preview map (mapview.route_map, streamlit-folium) returns the last
+click; a click is projected onto the track (7.1) and, by the radio under the map, sets the
+hardest-section km, opens the issue form (5.5, AP39) or shows a segment-boundary km. The
+component repeats the last click on every rerun, so a handled click is remembered in
+st.session_state["handled_click"] and acted on once.
 """
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import pandas as pd
 import streamlit as st
@@ -16,13 +19,15 @@ from pydantic import ValidationError
 from manager import store
 from manager.build import BuildError
 from manager.build.media import read_exif
-from manager.build.projection import km_along_lines
+from manager.build.projection import TrackProjector, km_along_lines
 from manager.build.read import SourceData, read_source_data
-from manager.build.routes import geometry_lines, process_route
+from manager.build.routes import geometry_lines, nearby_services, process_route
 from manager.build.segments import covered_km
+from manager.build.services import merge
 from manager.elevation import ElevationError, fill_route
-from manager.models import HardestSection, Itrs, MediaInfo, Route, Segment
+from manager.models import HardestSection, Itrs, ManualMarker, MediaInfo, Route, Segment
 from manager.models.identifiers import (
+    ISSUE_SEVERITIES,
     ITRS_LEVELS,
     MAINTAINERS,
     NON_MUNICIPAL_REASONS,
@@ -31,7 +36,7 @@ from manager.models.identifiers import (
 )
 from manager.settings import data_dir, env, load_env, tile_cache_dir
 from manager.sources import lipas
-from manager.ui import texts
+from manager.ui import mapview, texts
 from manager.ui.widgets import LANGUAGES, lang_inputs, lang_text
 from manager.validate.maintenance_reasons import check_maintenance_reasons
 from manager.validate.segments import TOLERANCE_KM, segment_problems
@@ -44,6 +49,8 @@ ITRS_OPTIONS = (None, *ITRS_LEVELS)
 IMAGE_TYPES = ["jpg", "jpeg", "png", "webp"]
 THUMBNAIL_WIDTH = 84
 SEGMENT_ATTRIBUTES = ("surface", "traffic", "itrs_technical")
+CLICK_MODES = tuple(texts.CLICK_MODE_NAMES)  # none, hardest, issue, boundary
+ISSUE_VALID_DAYS = 90
 
 load_env()
 st.title(texts.PAGE_ROUTES)
@@ -255,8 +262,158 @@ with preview_column:
                             st.session_state["select_next"] = route.id
                             st.rerun()
                 cli(f"python -m manager elevation --route {route.id}")
-        # ponytail: map preview with streamlit-folium in V2b
-        st.caption(texts.MAP_LATER)
+    if result is not None:
+        lines = geometry_lines(result.track["geometry"])
+        projector = TrackProjector(lines)
+        today = datetime.now(UTC).astimezone().date()
+        # Issues as the build sees them (merged, expired dropped), near this track (7.11).
+        services = merge(
+            data.osm_services, data.visitfinland_services, data.manual_markers
+        ).services
+        issues = nearby_services(
+            lines,
+            [s for s in services if s.category == "issue"],
+            data.project.nearby_services_m,
+        )
+        # Photo markers at EXIF positions (2.2); photos without a location get a warning.
+        photo_locations = {
+            key: read_exif(store.route_dir(source, route.id) / key).location for key in route.media
+        }
+        without_exif = sum(1 for location in photo_locations.values() if location is None)
+        if without_exif:
+            st.warning(texts.MEDIA_WITHOUT_EXIF.format(count=without_exif))
+        markers = [
+            (*location, key, mapview.PHOTO_COLOR)
+            for key, location in photo_locations.items()
+            if location is not None
+        ]
+        markers += [
+            (*s.location, (s.name or {}).get("fi") or s.id, mapview.ISSUE_COLOR) for s, _ in issues
+        ]
+        if route.hardest_section and route.hardest_section.km is not None:
+            markers.append(
+                (
+                    *projector.point_at(route.hardest_section.km),
+                    texts.MAP_MARKER_HARDEST,
+                    mapview.HARDEST_COLOR,
+                )
+            )
+        # Per-route session keys: a click on one route must not act on another.
+        pending_key, boundary_key = f"pending_issue{k}", f"segment_boundary_km{k}"
+        pending = st.session_state.get(pending_key)  # click waiting in the issue form
+        if pending:
+            markers.append((*pending, texts.MAP_MARKER_CURSOR, mapview.CURSOR_COLOR))
+        click = mapview.route_map(lines, markers=markers, key=f"route_map{k}")
+        mode = st.radio(
+            texts.MAP_CLICK_SETS,
+            CLICK_MODES,
+            format_func=texts.CLICK_MODE_NAMES.get,
+            horizontal=True,
+            key=f"click_mode{k}",
+        )
+        st.caption(texts.MAP_CLICK_HINT)
+        if click is not None and st.session_state.get("handled_click") != click:
+            st.session_state["handled_click"] = click
+            location, km = projector.snap(click)
+            km = round(km, 1)
+            if mode == "hardest":
+                hardest = route.hardest_section
+                media = hardest.media if hardest else route.cover_image
+                if media is None:
+                    st.caption(texts.HARDEST_NEEDS_COVER)
+                else:
+                    updated_hardest = (
+                        hardest.model_copy(update={"km": km})
+                        if hardest
+                        else HardestSection(media=media, km=km)
+                    )
+                    save(
+                        route.model_copy(update={"hardest_section": updated_hardest}),
+                        texts.HARDEST_KM_SET.format(km=decimal(km)),
+                    )
+            elif mode == "issue":
+                st.session_state[pending_key] = location
+                st.rerun()  # so the cursor marker is drawn before the form
+            elif mode == "boundary":
+                st.session_state[boundary_key] = km
+        if boundary_key in st.session_state:
+            st.caption(texts.BOUNDARY_CLICKED.format(km=decimal(st.session_state[boundary_key])))
+
+        # --- Issue form (5.5): opened by a click in the issue mode ---
+        if pending:
+            with st.form("issue_form"):
+                st.markdown(f"**{texts.ISSUE_FORM_HEADER}**")
+                issue_description = lang_inputs(texts.ISSUE_DESCRIPTION, None, "issue_desc")
+                severity = st.selectbox(
+                    texts.ISSUE_SEVERITY,
+                    ISSUE_SEVERITIES,
+                    format_func=texts.ISSUE_SEVERITY_NAMES.get,
+                    key="issue_severity",
+                )
+                valid_until = st.date_input(
+                    texts.ISSUE_VALID_UNTIL,
+                    value=today + timedelta(days=ISSUE_VALID_DAYS),
+                    key="issue_valid_until",
+                )
+                save_issue = st.form_submit_button(texts.BUTTON_SAVE_ISSUE, type="primary")
+                cancel_issue = st.form_submit_button(texts.BUTTON_CANCEL_ISSUE)
+            if cancel_issue:
+                del st.session_state[pending_key]
+                st.rerun()
+            if save_issue:
+                name = lang_text(issue_description)
+                if not name:
+                    st.error(texts.ISSUE_DESCRIPTION_REQUIRED)
+                else:
+                    marker = ManualMarker(
+                        id=store.manual_id(
+                            f"issue-{route.id}", map(store.marker_key, data.manual_markers)
+                        ),
+                        name=name,
+                        category="issue",
+                        source="manual",
+                        location=pending,
+                        reported_at=today.isoformat(),
+                        severity=severity,
+                        valid_until=valid_until.isoformat(),
+                    )
+                    path = store.save_manual(source, [*data.manual_markers, marker])
+                    del st.session_state[pending_key]
+                    st.session_state["flash"] = texts.ISSUE_SAVED.format(id=marker.id, path=path)
+                    st.session_state["select_next"] = route.id
+                    st.rerun()
+
+        # --- Issues near the route: table and delete ---
+        st.markdown(f"**{texts.ISSUES_HEADER}**")
+        if not issues:
+            st.caption(texts.ISSUES_NONE)
+        else:
+            columns = texts.ISSUE_COLUMNS
+            st.dataframe(
+                [
+                    {
+                        columns["id"]: s.id,
+                        columns["km"]: decimal(km),
+                        columns["description"]: (s.name or {}).get("fi", ""),
+                        columns["severity"]: texts.ISSUE_SEVERITY_NAMES.get(s.severity, ""),
+                        columns["valid_until"]: s.valid_until or "",
+                    }
+                    for s, km in issues
+                ],
+                hide_index=True,
+                width="stretch",
+            )
+            delete_column, button_column = st.columns([3, 1], vertical_alignment="bottom")
+            doomed = delete_column.selectbox(
+                texts.ISSUE_DELETE, [s.id for s, _ in issues], key=f"delete_issue{k}"
+            )
+            if button_column.button(texts.BUTTON_DELETE_ISSUE, key=f"delete_issue_button{k}"):
+                store.save_manual(
+                    source, [m for m in data.manual_markers if store.marker_key(m) != doomed]
+                )
+                st.session_state["flash"] = texts.ISSUE_DELETED.format(id=doomed)
+                st.session_state["select_next"] = route.id
+                st.rerun()
     with st.sidebar:
         if route is not None:
             st.caption(
@@ -559,7 +716,7 @@ if route is not None:
         ]
         for problem in problems:
             st.error(problem)
-        st.caption(texts.SEGMENTS_MAP_CLICK_LATER)
+        st.caption(texts.SEGMENTS_MAP_CLICK)
         if st.button(
             texts.BUTTON_SAVE_SEGMENTS,
             type="primary",

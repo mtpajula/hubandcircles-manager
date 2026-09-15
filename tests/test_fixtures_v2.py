@@ -8,15 +8,17 @@ fx-legacy  a legacy difficulty value → normalised with an info; `invalid/` hol
 
 import json
 import shutil
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
 from PIL import Image
 
+from manager import store
 from manager.build import BuildError, build
 from manager.build.projection import km_along_lines
 from manager.build.routes import geometry_lines
-from manager.models import Catalog, PublishedRoute
+from manager.models import Catalog, ManualMarker, PublishedRoute
 
 FIXTURES = Path(__file__).parent / "fixtures"
 FULL, PARTIAL, LEGACY = (FIXTURES / n for n in ("fx-full", "fx-partial", "fx-legacy"))
@@ -121,6 +123,36 @@ def test_full_services_nearby_and_gaps(full):
     services = json.loads((dist / catalog["services"]).read_text(encoding="utf-8"))
     assert [f["properties"]["id"] for f in services["features"]] == ["osm:node/102", "osm:node/103"]
     assert "location" not in services["features"][0]["properties"]
+
+
+def test_full_manual_issue_near_the_track_is_published(tmp_path):
+    """An issue saved from the routes page map (services/manual.geojson, 5.5) reaches the
+    route's nearby_services and services.geojson with its severity; an expired one does not."""
+    data = shutil.copytree(FULL, tmp_path / "full")
+    today = datetime.now(UTC).date()
+    issue = ManualMarker(
+        id="manual:issue-full-loop",
+        name={"fi": "Kaatunut puu"},
+        category="issue",
+        source="manual",
+        location=(25.7212, 66.5008),  # ~20 m off the track at km 0.1
+        reported_at=today.isoformat(),
+        severity="warning",
+        valid_until=(today + timedelta(days=90)).isoformat(),
+    )
+    expired = issue.model_copy(
+        update={"id": "manual:issue-full-loop-2", "valid_until": "2026-01-01"}
+    )
+    store.save_manual(data, [issue, expired])
+    dist = tmp_path / "dist"
+    build(data, dist)
+    route = _route(dist, "full-loop")
+    assert {"id": "manual:issue-full-loop", "km": 0.1} in route["nearby_services"]
+    assert not any(n["id"] == "manual:issue-full-loop-2" for n in route["nearby_services"])
+    services = json.loads((dist / "services.geojson").read_text(encoding="utf-8"))
+    (feature,) = [f for f in services["features"] if f["properties"]["category"] == "issue"]
+    assert feature["properties"]["severity"] == "warning"
+    assert feature["properties"]["valid_until"] == issue.valid_until
 
 
 def test_full_media_sizes_exist_without_metadata(full):

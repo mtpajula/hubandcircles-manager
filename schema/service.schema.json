@@ -120,6 +120,11 @@
     "severity": {
       "anyOf": [
         {
+          "enum": [
+            "info",
+            "warning",
+            "danger"
+          ],
           "type": "string"
         },
         {

@@ -2,7 +2,7 @@
 
 import json
 import shutil
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
@@ -690,3 +690,113 @@ def test_layers_page_shows_corridor_tile_state(ui_env, tmp_path, monkeypatch):
     assert "Komentorivillä: `python -m manager fetch tiles --layer topo`" in captions
     assert at.button(key="fetch_tiles_topo").label == "Hae puuttuvat tiilet"
     assert at.button(key="fetch_tiles_topo").disabled
+
+
+# --- Routes page map clicks (2.2, 2.5, 2.6; AP39) ---------------------------------------------
+
+FX_FULL = Path(__file__).parent / "fixtures" / "fx-full"
+NEAR_TRACK = (25.7212, 66.5008)  # ~20 m off the second fixture track point
+
+
+@pytest.fixture
+def clicks(monkeypatch):
+    """Replace the folium map with a stub that returns the click set in `clicks["at"]` and
+    records how many times the map was drawn."""
+    state: dict = {"at": None, "drawn": 0}
+
+    def route_map(lines, *, markers, height=380, key="route_map"):
+        state["drawn"] += 1
+        state["markers"] = markers
+        return state["at"]
+
+    monkeypatch.setattr("manager.ui.mapview.route_map", route_map)
+    return state
+
+
+@pytest.fixture
+def full_page(tmp_path, monkeypatch, clicks):
+    data = shutil.copytree(FX_FULL, tmp_path / "full")
+    monkeypatch.setenv("DATA_DIR", str(data))
+    at = AppTest.from_file(str(UI / "views" / "routes.py"), default_timeout=10).run()
+    at.selectbox(key="route_select").select("full-loop").run()
+    assert not at.exception, at.exception
+    return at, data
+
+
+def test_routes_page_map_click_sets_hardest_km(full_page, clicks):
+    at, data = full_page
+    assert clicks["drawn"] == 1 and at.radio(key="click_mode_full-loop").value == "none"
+    at.radio(key="click_mode_full-loop").set_value("hardest").run()
+    clicks["at"] = NEAR_TRACK
+    at.run()
+    assert not at.exception, at.exception
+    assert at.success[0].value == "Vaativin kohta: km 0,1"
+    card = json.loads((data / "routes" / "full-loop" / "route.json").read_text())
+    assert card["hardest_section"]["km"] == 0.1
+    assert card["hardest_section"]["media"] == "media/rocky-descent.jpg"  # kept
+    # The editor below shows the saved value, and the map marks the hardest section.
+    assert at.number_input(key="hardest_km_media/rocky-descent.jpg_full-loop").value == 0.1
+    labels = [m[2] for m in clicks["markers"]]
+    assert "Vaativin kohta" in labels and "media/rocky-descent.jpg" in labels  # photo (2.2)
+    # The same click is not applied twice.
+    at.run()
+    assert not at.success
+
+
+def test_routes_page_map_click_creates_and_deletes_an_issue(full_page, clicks):
+    at, data = full_page
+    at.radio(key="click_mode_full-loop").set_value("issue").run()
+    clicks["at"] = NEAR_TRACK
+    at.run()
+    assert not at.exception, at.exception
+    assert "Klikkaus" in [m[2] for m in clicks["markers"]]
+    at.text_input(key="issue_desc_fi").set_value("Kaatunut puu")
+    at.selectbox(key="issue_severity").select("warning")
+    at.button(key="FormSubmitter:issue_form-Tallenna ongelmakohta").click().run()
+    assert not at.exception, at.exception
+    assert at.success[0].value.startswith("Ongelmakohta tallennettu: manual:issue-full-loop")
+    manual = json.loads((data / "services" / "manual.geojson").read_text())
+    (feature,) = manual["features"]
+    today = datetime.now(UTC).astimezone().date()
+    assert feature["properties"] == {
+        "id": "manual:issue-full-loop",
+        "name": {"fi": "Kaatunut puu"},
+        "category": "issue",
+        "source": "manual",
+        "reported_at": today.isoformat(),
+        "severity": "warning",
+        "valid_until": (today + timedelta(days=90)).isoformat(),
+    }
+    lon, lat = feature["geometry"]["coordinates"]
+    assert lon != NEAR_TRACK[0] and abs(lon - NEAR_TRACK[0]) < 0.001  # snapped onto the track
+    assert abs(lat - NEAR_TRACK[1]) < 0.001
+    # Listed near the route with its km, and drawn on the map.
+    (issues,) = [d.value for d in at.dataframe if "vakavuus" in d.value.columns]
+    assert list(issues["id"]) == ["manual:issue-full-loop"] and list(issues["km"]) == ["0,1"]
+    assert "Kaatunut puu" in [m[2] for m in clicks["markers"]]
+
+    at.button(key="delete_issue_button_full-loop").click().run()
+    assert not at.exception, at.exception
+    assert at.success[0].value == "Ongelmakohta poistettu: manual:issue-full-loop"
+    assert json.loads((data / "services" / "manual.geojson").read_text())["features"] == []
+    assert "Ei ongelmakohtia reitin lähellä." in [c.value for c in at.caption]
+
+
+def test_routes_page_map_click_shows_boundary_km(full_page, clicks):
+    at, _ = full_page
+    at.radio(key="click_mode_full-loop").set_value("boundary").run()
+    clicks["at"] = NEAR_TRACK
+    at.run()
+    assert not at.exception, at.exception
+    assert "Viimeisin klikkaus: km 0,1 – kopioi segmenttieditoriin" in [c.value for c in at.caption]
+
+
+def test_routes_page_without_a_track_shows_no_map(tmp_path, monkeypatch, clicks):
+    data = shutil.copytree(FX_FULL, tmp_path / "full")
+    monkeypatch.setenv("DATA_DIR", str(data))
+    (data / "routes" / "full-loop" / "track.gpx").unlink()
+    at = AppTest.from_file(str(UI / "views" / "routes.py"), default_timeout=10).run()
+    at.selectbox(key="route_select").select("full-loop").run()
+    assert not at.exception, at.exception
+    assert at.warning[0].value.startswith("Jälkeä ei voi lukea")
+    assert clicks["drawn"] == 0 and not at.radio

@@ -170,7 +170,43 @@ ELEVATIONS_FILL_FAILED = "Korkeuksien täydennys epäonnistui"
 ELEVATION_SOURCE_MML_DEM = "Korkeudet: MML korkeusmalli 2 m"
 NO_ROUTE_SELECTED = "Valitse reitti tai luo uusi."
 TRACK_BROKEN = "Jälkeä ei voi lukea: {error}"
-MAP_LATER = "Karttaesikatselu tulee vaiheessa V2."
+MAP_CLICK_SETS = "Klikkaus asettaa"
+CLICK_MODE_NAMES = {
+    "none": "Ei mitään",
+    "hardest": "Vaativimman kohdan",
+    "issue": "Uuden ongelmakohdan",
+    "boundary": "Segmentin rajan",
+}
+MAP_MARKER_HARDEST = "Vaativin kohta"
+MEDIA_WITHOUT_EXIF = (
+    "{count} kuvassa ei ole EXIF-sijaintia. Ne näkyvät galleriassa mutta eivät kartalla."
+)
+MAP_MARKER_CURSOR = "Klikkaus"
+MAP_CLICK_HINT = "Klikkaus projisoidaan reittiviivalle ja muutetaan kilometriksi."
+HARDEST_NEEDS_COVER = "Valitse ensin kuva Vaativin kohta -osiossa"
+HARDEST_KM_SET = "Vaativin kohta: km {km}"
+BOUNDARY_CLICKED = "Viimeisin klikkaus: km {km} – kopioi segmenttieditoriin"
+ISSUE_FORM_HEADER = "Uusi ongelmakohta"
+ISSUE_DESCRIPTION = "Kuvaus"
+ISSUE_SEVERITY = "Vakavuus"
+ISSUE_SEVERITY_NAMES = {"info": "tiedoksi", "warning": "varoitus", "danger": "vaara"}
+ISSUE_VALID_UNTIL = "Voimassa asti"
+ISSUE_DESCRIPTION_REQUIRED = "Anna ongelmakohdalle kuvaus."
+BUTTON_SAVE_ISSUE = "Tallenna ongelmakohta"
+BUTTON_CANCEL_ISSUE = "Peruuta"
+ISSUE_SAVED = "Ongelmakohta tallennettu: {id} ({path})"
+ISSUES_HEADER = "Ongelmakohdat reitin lähellä"
+ISSUES_NONE = "Ei ongelmakohtia reitin lähellä."
+ISSUE_COLUMNS = {
+    "id": "id",
+    "km": "km",
+    "description": "kuvaus",
+    "severity": "vakavuus",
+    "valid_until": "voimassa asti",
+}
+ISSUE_DELETE = "Poista ongelmakohta"
+BUTTON_DELETE_ISSUE = "Poista"
+ISSUE_DELETED = "Ongelmakohta poistettu: {id}"
 ROUTES_TABLE_HEADER = "Reitit"
 ROUTES_TABLE_COLUMNS = {
     "name": "nimi",
@@ -259,8 +295,8 @@ SURFACE_NAMES = {
 TRAFFIC_NAMES = {"separated": "erotettu", "quiet": "hiljainen", "busy": "vilkas"}
 SEGMENTS_PROBLEM = "Segmentit: {problem}"
 SEGMENTS_INCOMPLETE_ROW = "Rivillä {row} alku tai loppu puuttuu."
-SEGMENTS_MAP_CLICK_LATER = (
-    "Rajan asettaminen karttaa klikkaamalla tulee karttaesikatselun mukana (V2b)."
+SEGMENTS_MAP_CLICK = (
+    'Aseta raja klikkaamalla karttaa: valitse kartan alta "Segmentin rajan" ja kopioi km.'
 )
 BUTTON_SAVE_SEGMENTS = "Tallenna segmentit"
 SEGMENTS_SAVED = "Segmentit tallennettu: {count} kpl"

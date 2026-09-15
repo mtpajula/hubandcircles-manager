@@ -14,6 +14,9 @@ uv sync
 cp .env.example .env      # fill in DATA_DIR (e.g. ../hubandcircles-data) and the keys you have
 ```
 
+`uv sync` installs everything, including `streamlit-folium` for the map on the routes page
+(the map tiles come from OpenStreetMap, so the UI needs network access to show them).
+
 `.env` is gitignored. Variables: `DATA_DIR`, `SOURCE_FILES_DIR`, `TILE_CACHE_DIR`, `PMTILES_BIN`,
 `MML_API_KEY`, `VF_API_KEY`, `VF_API_SECONDARY_KEY`, `GITHUB_TOKEN` (optional; without it git's own
 credential helper is used for publishing).

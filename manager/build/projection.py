@@ -45,6 +45,21 @@ class TrackProjector:
         assert nearest is not None
         return nearest
 
+    def snap(self, point: tuple[float, float]) -> tuple[tuple[float, float], float]:
+        """(WGS84 point on the track nearest to `point`, km along the track); a map click
+        projected onto the line (ADMIN-UI-SPEC 2.6)."""
+        km = self.project(point)[1]
+        return self.point_at(km), km
+
+    def point_at(self, km: float) -> tuple[float, float]:
+        """WGS84 (lon, lat) of the track at `km`; clamped to the ends."""
+        line, start_km = self.parts[0]
+        for line, start_km in self.parts:
+            if km <= start_km + line.length / 1000:
+                break
+        on_line = line.interpolate(max(km - start_km, 0.0) * 1000)
+        return to_deg(on_line.x, on_line.y)
+
 
 def km_along(track_coords_wgs84: Coordinates, point: tuple[float, float]) -> float:
     """Distance along the track (km, unrounded) to the point of the track nearest to `point`.

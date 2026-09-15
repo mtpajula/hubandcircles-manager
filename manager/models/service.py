@@ -10,7 +10,7 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict
 
 from manager.models.common import LangText
-from manager.models.identifiers import ServiceCategory, ServiceSource
+from manager.models.identifiers import IssueSeverity, ServiceCategory, ServiceSource
 
 Location = tuple[float, float]  # WGS84 (lon, lat)
 
@@ -30,7 +30,7 @@ class Service(BaseModel):
     fetched_at: str | None = None  # ISO UTC timestamp of the snapshot
     location: Location
     # Issue fields (category `issue`); an expired `valid_until` drops the point in the build.
-    severity: str | None = None
+    severity: IssueSeverity | None = None
     reported_at: str | None = None
     valid_until: str | None = None  # ISO date
     report: str | None = None  # e.g. "github#42"
@@ -63,7 +63,7 @@ class ManualMarker(BaseModel):
     description: LangText | None = None
     fetched_at: str | None = None
     location: Location | None = None
-    severity: str | None = None
+    severity: IssueSeverity | None = None
     reported_at: str | None = None
     valid_until: str | None = None
     report: str | None = None

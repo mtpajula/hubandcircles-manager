@@ -66,6 +66,8 @@ ServiceCategory = Literal[
 ]
 # Merge priority in build/services.py: manual > visitfinland > osm (5.5).
 ServiceSource = Literal["osm", "visitfinland", "manual"]
+# Severity of an `issue` point (5.5): the frontend picks the marker style from it.
+IssueSeverity = Literal["info", "warning", "danger"]
 # Map layer slots (5.7, chapter 8): fixed in the frontend, chosen per layer card.
 LayerSlot = Literal["base", "raster", "area", "routes", "points"]
 # Published layer types (5.4): each is frontend code; the build derives them from the source.
@@ -86,6 +88,7 @@ NON_MUNICIPAL_REASONS: tuple[str, ...] = get_args(NonMunicipalReason)
 SECTION_TYPES: tuple[str, ...] = get_args(SectionType)
 SERVICE_CATEGORIES: tuple[str, ...] = get_args(ServiceCategory)
 SERVICE_SOURCES: tuple[str, ...] = get_args(ServiceSource)
+ISSUE_SEVERITIES: tuple[str, ...] = get_args(IssueSeverity)
 LAYER_SLOTS: tuple[str, ...] = get_args(LayerSlot)
 LAYER_TYPES: tuple[str, ...] = get_args(LayerType)
 
