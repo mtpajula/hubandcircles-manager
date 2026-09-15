@@ -7,6 +7,7 @@ from manager.build import BuildError, build
 from manager.build.layers import corridor_layers, corridor_tile_set, read_tracks
 from manager.build.read import read_source_data
 from manager.cli import build_parser
+from manager.elevation import ElevationError, fill_route
 from manager.publish import PublishError, publish
 from manager.publish.preview import serve
 from manager.schema import generate
@@ -65,7 +66,26 @@ def main(argv: list[str] | None = None) -> int:
         return import_lipas(args)
     if args.command == "fetch":
         return fetch_tiles(args) if args.source == "tiles" else fetch_services(args)
+    if args.command == "elevation":
+        return fill_elevation(args)
     return 2
+
+
+def fill_elevation(args: argparse.Namespace) -> int:
+    """Fill the missing elevations of one route from the MML DEM (AP40)."""
+    key = env("MML_API_KEY")
+    if not key:
+        print("Set MML_API_KEY in .env", file=sys.stderr)
+        return 2
+    try:
+        report = fill_route(
+            args.data, args.route, key=key, cache_dir=tile_cache_dir(), overwrite=args.overwrite
+        )
+    except (BuildError, ElevationError) as e:
+        print(f"Elevation fill aborted:\n{e}", file=sys.stderr)
+        return 1
+    print(report.text())
+    return 0
 
 
 def fetch_services(args: argparse.Namespace) -> int:

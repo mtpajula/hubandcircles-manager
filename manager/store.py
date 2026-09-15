@@ -11,11 +11,9 @@ import shutil
 from collections.abc import Iterable
 from pathlib import Path
 
-import gpxpy
-import gpxpy.gpx
-
 from manager.build import write_json
 from manager.build.read import read_features
+from manager.build.routes import parse_track
 from manager.models import (
     GallerySection,
     LangText,
@@ -46,6 +44,7 @@ __all__ = [
     "save_route",
     "save_theme",
     "slugify",
+    "track_name",
     "with_description",
 ]
 
@@ -60,13 +59,24 @@ def route_dir(data_dir: Path, route_id: str) -> Path:
     return data_dir / "routes" / route_id
 
 
-def _check_gpx(gpx: bytes) -> None:
+TRACK_SUFFIXES = (".gpx", ".geojson", ".json")
+
+
+def track_name(filename: str) -> str:
+    """`track<suffix>` of an uploaded track file (AP40): the file keeps its own extension."""
+    suffix = Path(filename).suffix.lower()
+    if suffix not in TRACK_SUFFIXES:
+        raise StoreError(f"{filename}: track must be one of {', '.join(TRACK_SUFFIXES)}")
+    return f"track{suffix}"
+
+
+def _check_track(name: str, content: bytes) -> bool:
+    """Validate an uploaded track (≥ 2 points); True when any point has an elevation."""
     try:
-        parsed = gpxpy.parse(gpx.decode("utf-8"))
-    except (UnicodeDecodeError, gpxpy.gpx.GPXException) as e:
-        raise StoreError(f"GPX: {e}") from e
-    if sum(len(seg.points) for trk in parsed.tracks for seg in trk.segments) < 2:
-        raise StoreError("GPX: track has fewer than 2 points")
+        segments = parse_track(content.decode("utf-8"), Path(name).suffix)
+    except (UnicodeDecodeError, ValueError) as e:
+        raise StoreError(f"track: {e}") from e
+    return any(p.elevation is not None for seg in segments for p in seg)
 
 
 def media_key(filename: str) -> str:
@@ -78,23 +88,32 @@ def media_key(filename: str) -> str:
 def save_route(
     data_dir: Path,
     route: Route,
-    gpx: bytes | None = None,
+    track: tuple[str, bytes] | None = None,
     images: list[tuple[str, bytes]] | None = None,
 ) -> Path:
     """Write routes/<id>/route.json, the track and the images (media_key names) when given.
 
-    Returns the route directory.
+    `track` is (uploaded filename, content): a .gpx or .geojson/.json file (AP40), stored as
+    track<suffix>; the card's `track` follows, and `elevation_source` records the format when
+    the file carries elevations (None otherwise). Returns the route directory.
     """
     if not SLUG.match(route.id):
         raise StoreError(f"route id {route.id!r} is not a slug (a-z, 0-9, '-')")
-    if gpx is not None:
-        _check_gpx(gpx)
+    if track is not None:
+        name = track_name(track[0])
+        source = "gpx" if name.endswith(".gpx") else "geojson"
+        route = route.model_copy(
+            update={
+                "track": name,
+                "elevation_source": source if _check_track(name, track[1]) else None,
+            }
+        )
     directory = route_dir(data_dir, route.id)
-    if gpx is None and not (directory / route.track).is_file():
-        raise StoreError(f"{directory / route.track}: track is missing; upload a GPX")
+    if track is None and not (directory / route.track).is_file():
+        raise StoreError(f"{directory / route.track}: track is missing; upload a GPX or GeoJSON")
     write_json(directory / "route.json", route.model_dump(mode="json", exclude_none=True))
-    if gpx is not None:
-        (directory / route.track).write_bytes(gpx)
+    if track is not None:
+        (directory / route.track).write_bytes(track[1])
     for filename, data in images or []:
         target = directory / media_key(filename)
         target.parent.mkdir(parents=True, exist_ok=True)

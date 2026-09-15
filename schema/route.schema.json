@@ -348,6 +348,23 @@
       "default": null,
       "title": "Difficulty"
     },
+    "elevation_source": {
+      "anyOf": [
+        {
+          "enum": [
+            "gpx",
+            "geojson",
+            "mml_dem"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Elevation Source"
+    },
     "hardest_section": {
       "anyOf": [
         {

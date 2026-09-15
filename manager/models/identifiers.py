@@ -48,6 +48,8 @@ NonMunicipalReason = Literal[
     "seasonal",
 ]
 SectionType = Literal["text", "gallery", "video", "elevation_profile"]
+# Where the track's elevations come from: the uploaded file, or the MML 2 m DEM fill (AP40).
+ElevationSource = Literal["gpx", "geojson", "mml_dem"]
 # Service point categories (5.5); `issue` is a problem spot with severity and validity.
 ServiceCategory = Literal[
     "cafe",

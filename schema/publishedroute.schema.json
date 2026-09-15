@@ -476,6 +476,23 @@
       "default": null,
       "title": "Dominant Surface"
     },
+    "elevation_source": {
+      "anyOf": [
+        {
+          "enum": [
+            "gpx",
+            "geojson",
+            "mml_dem"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Elevation Source"
+    },
     "gpx": {
       "anyOf": [
         {

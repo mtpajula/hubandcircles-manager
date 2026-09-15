@@ -619,6 +619,59 @@ def test_services_page_adds_hides_and_deletes_manual_markers(ui_env):
     assert len(at.selectbox(key="fix_target").options) == 2  # node/103 is back
 
 
+def test_routes_page_offers_elevation_fill_for_a_track_without_elevations(tmp_path, monkeypatch):
+    """AP40: fx-partial `bare` has no elevations → the fill button, disabled without the key."""
+    data = shutil.copytree(Path(__file__).parent / "fixtures" / "fx-partial", tmp_path / "partial")
+    monkeypatch.setenv("DATA_DIR", str(data))
+    monkeypatch.delenv("MML_API_KEY", raising=False)
+    monkeypatch.setattr("manager.settings.load_env", lambda *a, **k: None)  # not the repo .env
+    at = AppTest.from_file(str(UI / "views" / "routes.py"), default_timeout=10).run()
+    at.selectbox(key="route_select").select("bare").run()
+    assert not at.exception, at.exception
+    assert [(m.label, m.value) for m in at.metric][:2] == [("Pituus", "1,3 km"), ("Nousu", "–")]
+    captions = [c.value for c in at.caption]
+    assert texts.NO_ELEVATIONS in captions and texts.ELEVATIONS_KEY_MISSING in captions
+    assert "Komentorivillä: `python -m manager elevation --route bare`" in captions
+    button = at.button(key="fill_elevations_bare")
+    assert button.label == "Täydennä korkeudet MML:n korkeusmallista" and button.disabled
+    assert texts.ELEVATION_SOURCE_MML_DEM not in captions
+
+    at.selectbox(key="route_select").select("half-covered").run()
+    assert not at.exception, at.exception
+    assert not [b for b in at.button if b.key == "fill_elevations_half-covered"]
+
+
+def test_routes_page_fills_elevations_offline(tmp_path, monkeypatch):
+    from manager import elevation
+
+    from .test_elevation import fake_cell
+
+    data = shutil.copytree(Path(__file__).parent / "fixtures" / "fx-partial", tmp_path / "partial")
+    monkeypatch.setenv("DATA_DIR", str(data))
+    monkeypatch.setenv("MML_API_KEY", "secret")
+    monkeypatch.setenv("TILE_CACHE_DIR", str(tmp_path / "cache"))
+    monkeypatch.setattr(
+        elevation,
+        "fetch_cell",
+        lambda e0, n0, *, key, cache_dir, cell_m=500: fake_cell(
+            elevation.cell_path(cache_dir, e0, n0), e0, n0
+        ),
+    )
+    at = AppTest.from_file(str(UI / "views" / "routes.py"), default_timeout=10).run()
+    at.selectbox(key="route_select").select("bare").run()
+    assert not at.button(key="fill_elevations_bare").disabled
+    at.button(key="fill_elevations_bare").click().run()
+    assert not at.exception, at.exception
+    assert at.success[0].value == (
+        "Korkeudet täydennetty: 10 points, 10 filled from MML DEM, 1 cells fetched (0 cached)"
+    )
+    assert at.metric[1].label == "Nousu" and at.metric[1].value != "–"
+    assert texts.ELEVATION_SOURCE_MML_DEM in [c.value for c in at.caption]
+    assert not [b for b in at.button if b.key == "fill_elevations_bare"]
+    card = json.loads((data / "routes" / "bare" / "route.json").read_text())
+    assert card["elevation_source"] == "mml_dem"
+
+
 def test_layers_page_shows_corridor_tile_state(ui_env, tmp_path, monkeypatch):
     from .test_layers import TOPO, _fake_cache, _write_layer
 

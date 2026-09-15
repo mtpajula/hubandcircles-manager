@@ -15,6 +15,22 @@ GPX = (
     b"</trkseg></trk></gpx>"
 )
 ONE_POINT_GPX = GPX.replace(b'<trkpt lat="66.51" lon="25.71"></trkpt>', b"")
+TRACK = ("ride.gpx", GPX)
+GEOJSON = json.dumps(
+    {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {},
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [[25.7, 66.5, 100.0], [25.71, 66.51, 110.0]],
+                },
+            }
+        ],
+    }
+).encode()
 
 
 def _route(**overrides) -> Route:
@@ -23,13 +39,30 @@ def _route(**overrides) -> Route:
 
 
 def test_save_route_writes_card_and_track(data):
-    directory = store.save_route(data, _route(lipas_id=5), GPX)
+    directory = store.save_route(data, _route(lipas_id=5), TRACK)
     assert directory == data / "routes" / "new-loop"
     text = (directory / "route.json").read_text(encoding="utf-8")
     assert text.endswith("}\n") and "\n  " in text  # pretty, trailing newline
     assert "difficulty" not in json.loads(text)  # exclude_none
     assert (directory / "track.gpx").read_bytes() == GPX
+    assert "elevation_source" not in json.loads(text)  # the GPX has no elevations (P11)
     assert [r.id for _, r in read_source_data(data).routes] == ["new-loop", "test-loop"]
+
+
+def test_save_route_accepts_geojson_track(data):
+    """AP40: a QGIS GeoJSON export is stored as track.geojson and the card points to it."""
+    directory = store.save_route(data, _route(), ("digitised.GeoJSON", GEOJSON))
+    card = json.loads((directory / "route.json").read_text())
+    assert card["track"] == "track.geojson" and card["elevation_source"] == "geojson"
+    assert (directory / "track.geojson").read_bytes() == GEOJSON
+    assert [r.track for _, r in read_source_data(data).routes if r.id == "new-loop"] == [
+        "track.geojson"
+    ]
+    one_point = b'{"type": "LineString", "coordinates": [[25.7, 66.5]]}'
+    with pytest.raises(store.StoreError, match="fewer than 2 points"):
+        store.save_route(data, _route(id="short"), ("x.geojson", one_point))
+    with pytest.raises(store.StoreError, match="must be one of"):
+        store.save_route(data, _route(id="kml"), ("x.kml", GPX))
 
 
 def test_save_route_keeps_track_when_no_gpx_given(data):
@@ -50,15 +83,15 @@ def test_save_route_refuses_new_route_without_track(data):
 
 @pytest.mark.parametrize("gpx", [b"not xml", ONE_POINT_GPX])
 def test_save_route_refuses_bad_gpx(data, gpx):
-    with pytest.raises(store.StoreError, match="GPX"):
-        store.save_route(data, _route(), gpx)
+    with pytest.raises(store.StoreError, match="track"):
+        store.save_route(data, _route(), ("t.gpx", gpx))
     assert not (data / "routes" / "new-loop").exists()
 
 
 @pytest.mark.parametrize("route_id", ["Uusi Reitti", "../x", "-a", "a--b", ""])
 def test_save_route_refuses_non_slug_id(data, route_id):
     with pytest.raises(store.StoreError, match="slug"):
-        store.save_route(data, _route(id=route_id), GPX)
+        store.save_route(data, _route(id=route_id), TRACK)
 
 
 def test_delete_route_removes_directory_only_for_existing_slug(data):
@@ -125,7 +158,7 @@ def test_slugify_is_the_lipas_one():
 
 def test_save_route_writes_images_under_media(data):
     images = [("IMG 0001.JPG", b"\xff\xd8jpeg"), ("Kivikkoinen lasku.jpeg", b"\xff\xd8other")]
-    directory = store.save_route(data, _route(), GPX, images=images)
+    directory = store.save_route(data, _route(), TRACK, images=images)
     assert (directory / "media" / "img-0001.jpg").read_bytes() == b"\xff\xd8jpeg"
     assert (directory / "media" / "kivikkoinen-lasku.jpeg").read_bytes() == b"\xff\xd8other"
     assert store.media_key("IMG 0001.JPG") == "media/img-0001.jpg"

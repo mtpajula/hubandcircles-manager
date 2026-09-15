@@ -1,5 +1,6 @@
 """The route stage computes the README golden values from the fixture GPX."""
 
+import json
 from itertools import pairwise
 from pathlib import Path
 
@@ -8,7 +9,13 @@ import pytest
 
 from manager.build import BuildError
 from manager.build.gpx import export_gpx
-from manager.build.routes import longest_gap, nearby_services, process_route, published_route
+from manager.build.routes import (
+    longest_gap,
+    nearby_services,
+    process_route,
+    published_route,
+    read_track,
+)
 from manager.models import PublishedRoute, Route, Segment, Service, ServiceGap, Theme
 
 from .conftest import FIXTURE
@@ -111,6 +118,61 @@ def test_multi_segment_track(tmp_path):
     assert result.length_km == 0.2  # 2 x 0.11 km; the 11 km gap is not counted
     assert result.bbox == pytest.approx((25.72, 66.5, 25.72, 66.601), abs=1e-4)
     assert result.ascent_m is None
+
+
+def test_geojson_track_builds_like_the_gpx(tmp_path):
+    """AP40: a QGIS GeoJSON export (Feature, LineString with z) gives the same result as the
+    GPX with the same points; a MultiLineString gives one segment per part."""
+    segments = read_track(FIXTURE / "routes" / "test-loop" / "track.gpx")
+    coordinates = [[p.longitude, p.latitude, p.elevation] for p in segments[0]]
+    feature = {
+        "type": "Feature",
+        "properties": {"name": "Testilenkki"},
+        "geometry": {"type": "LineString", "coordinates": coordinates},
+    }
+    (tmp_path / "track.geojson").write_text(json.dumps(feature))
+    expected = process_route(FIXTURE / "routes" / "test-loop", ROUTE)
+    result = process_route(tmp_path, ROUTE.model_copy(update={"track": "track.geojson"}))
+    assert (result.length_km, result.ascent_m, result.bbox) == (1.3, 29, expected.bbox)
+    assert result.track["geometry"] == expected.track["geometry"]
+    assert result.profile == expected.profile
+
+    collection = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {},
+                "geometry": {
+                    "type": "MultiLineString",
+                    "coordinates": [
+                        [c[:2] for c in coordinates[:5]],
+                        [c[:2] for c in coordinates[5:]],
+                    ],
+                },
+            }
+        ],
+    }
+    (tmp_path / "track.json").write_text(json.dumps(collection))
+    result = process_route(tmp_path, ROUTE.model_copy(update={"track": "track.json"}))
+    assert result.track["geometry"]["type"] == "MultiLineString"
+    assert [len(part) for part in read_track(tmp_path / "track.json")] == [5, 5]
+    assert result.ascent_m is None  # no z → no elevations (P11)
+
+
+@pytest.mark.parametrize(
+    ("text", "message"),
+    [
+        ("{", "GeoJSON"),
+        ('{"type": "Point", "coordinates": [25.72, 66.5]}', "not a LineString"),
+        ('{"type": "LineString", "coordinates": [[25.72, 66.5]]}', "fewer than 2 points"),
+        ('{"type": "LineString", "coordinates": [[25.72], [25.73]]}', "lon and lat"),
+    ],
+)
+def test_broken_geojson_track_is_a_build_error(tmp_path, text, message):
+    (tmp_path / "track.geojson").write_text(text)
+    with pytest.raises(BuildError, match=message):
+        read_track(tmp_path / "track.geojson")
 
 
 def test_profile_km_continues_across_segments(tmp_path):

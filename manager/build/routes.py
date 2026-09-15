@@ -1,5 +1,11 @@
-"""Build stage: routes. GPX → GeoJSON, simplification, length, ascent, bbox, profile, km (7.2)."""
+"""Build stage: routes. Track → GeoJSON, simplification, length, ascent, bbox, profile, km (7.2).
 
+The track is a GPX file (gpxpy) or a GeoJSON file (AP40: LineString/MultiLineString, WGS84,
+optional third coordinate = elevation, as QGIS exports it). Both become the same segments of
+TrackPoint, so everything after read_track is format-agnostic.
+"""
+
+import json
 from dataclasses import dataclass
 from itertools import pairwise
 from pathlib import Path
@@ -27,9 +33,12 @@ from manager.models import (
 geod = Geod(ellps="WGS84")
 
 PROFILE_POINTS = 200
+GEOJSON_SUFFIXES = (".geojson", ".json")
 
 
 Coordinates = list[tuple[float, float]]  # WGS84 (lon, lat)
+# gpxpy's point is the in-memory track point for both formats: latitude, longitude, elevation.
+TrackPoint = gpxpy.gpx.GPXTrackPoint
 
 
 @dataclass
@@ -39,7 +48,7 @@ class RouteResult:
     ascent_m: int | None  # None when the track has no elevations (P11)
     bbox: Bbox
     profile: list[tuple[float, float]]  # [cumulative km, elevation m]
-    points: list[list[gpxpy.gpx.GPXTrackPoint]]  # source points per segment, for route.gpx
+    points: list[list[TrackPoint]]  # source points per segment, for route.gpx
 
 
 def cumulative_m(coords: Coordinates, start_m: float = 0.0) -> list[float]:
@@ -72,19 +81,70 @@ def geometry_lines(geometry: dict) -> list[Coordinates]:
     return geometry["coordinates"]
 
 
-def _segments(path: Path) -> list[list[gpxpy.gpx.GPXTrackPoint]]:
-    """Track segments kept separate; segments with fewer than 2 points are dropped."""
+def _geojson_lines(obj: object) -> list[list[list[float]]]:
+    """Every LineString of a GeoJSON object, MultiLineString parts and features flattened."""
+    if not isinstance(obj, dict) or "type" not in obj:
+        raise ValueError("not a GeoJSON object")
+    kind = obj["type"]
+    if kind == "FeatureCollection":
+        return [line for f in obj.get("features", []) for line in _geojson_lines(f)]
+    if kind == "Feature":
+        return _geojson_lines(obj.get("geometry")) if obj.get("geometry") else []
+    if kind == "LineString":
+        return [obj["coordinates"]]
+    if kind == "MultiLineString":
+        return list(obj["coordinates"])
+    raise ValueError(f"geometry {kind} is not a LineString or MultiLineString")
+
+
+def _geojson_segments(text: str) -> list[list[TrackPoint]]:
     try:
-        with path.open(encoding="utf-8") as f:
-            gpx = gpxpy.parse(f)
+        lines = _geojson_lines(json.loads(text))
+    except (json.JSONDecodeError, KeyError, TypeError) as e:
+        raise ValueError(f"GeoJSON: {e}") from e
+    segments = []
+    for line in lines:
+        points = []
+        for position in line:
+            if not isinstance(position, list) or len(position) < 2:
+                raise ValueError("GeoJSON: a position needs at least lon and lat")
+            elevation = (
+                float(position[2]) if len(position) > 2 and position[2] is not None else None
+            )
+            points.append(TrackPoint(float(position[1]), float(position[0]), elevation=elevation))
+        segments.append(points)
+    return segments
+
+
+def _gpx_segments(text: str) -> list[list[TrackPoint]]:
+    try:
+        gpx = gpxpy.parse(text)
+    except gpxpy.gpx.GPXException as e:
+        raise ValueError(f"GPX: {e}") from e
+    return [seg.points for trk in gpx.tracks for seg in trk.segments]
+
+
+def parse_track(text: str, suffix: str) -> list[list[TrackPoint]]:
+    """Track segments of a GPX (any other suffix) or GeoJSON (.geojson, .json) text.
+
+    Segments with fewer than 2 points are dropped; ValueError when none is left or the text
+    does not parse. The store validates uploads with this, the build reads files with read_track.
+    """
+    parse = _geojson_segments if suffix.lower() in GEOJSON_SUFFIXES else _gpx_segments
+    segments = [points for points in parse(text) if len(points) >= 2]
+    if not segments:
+        raise ValueError("track has fewer than 2 points")
+    return segments
+
+
+def read_track(path: Path) -> list[list[TrackPoint]]:
+    """Track segments of a GPX or GeoJSON file; BuildError when unreadable or too short."""
+    try:
+        return parse_track(path.read_text(encoding="utf-8"), path.suffix)
     except OSError as e:
         raise BuildError(f"{path}: {e.strerror}") from e
-    except gpxpy.gpx.GPXException as e:
+    except (UnicodeDecodeError, ValueError) as e:
         raise BuildError(f"{path}: {e}") from e
-    segments = [seg.points for trk in gpx.tracks for seg in trk.segments if len(seg.points) >= 2]
-    if not segments:
-        raise BuildError(f"{path}: track has fewer than 2 points")
-    return segments
 
 
 def _thin[T](points: list[T], at_most: int) -> list[T]:
@@ -95,7 +155,7 @@ def _thin[T](points: list[T], at_most: int) -> list[T]:
 
 
 def process_route(directory: Path, route: Route) -> RouteResult:
-    segments = _segments(directory / route.track)
+    segments = read_track(directory / route.track)
     # Cumulative distance continues across segments without adding the gap between them:
     # the first point of a segment has the same km as the last point of the previous one.
     km_per_point: list[float] = []
@@ -244,6 +304,7 @@ def published_route(
         winter_maintenance=route.winter_maintenance,
         lipas_id=route.lipas_id,
         track="track.geojson",
+        elevation_source=route.elevation_source,
         profile=result.profile,
         sections=route.sections,
         maintenance_url=route.maintenance_url,

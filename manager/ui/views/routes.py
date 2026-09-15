@@ -20,6 +20,7 @@ from manager.build.projection import km_along_lines
 from manager.build.read import SourceData, read_source_data
 from manager.build.routes import geometry_lines, process_route
 from manager.build.segments import covered_km
+from manager.elevation import ElevationError, fill_route
 from manager.models import HardestSection, Itrs, MediaInfo, Route, Segment
 from manager.models.identifiers import (
     ITRS_LEVELS,
@@ -28,7 +29,7 @@ from manager.models.identifiers import (
     SURFACES,
     TRAFFICS,
 )
-from manager.settings import data_dir, env, load_env
+from manager.settings import data_dir, env, load_env, tile_cache_dir
 from manager.sources import lipas
 from manager.ui import texts
 from manager.ui.widgets import LANGUAGES, lang_inputs, lang_text
@@ -162,20 +163,20 @@ with form_column:
                     else texts.HARDEST_SUMMARY_KM.format(km=decimal(hardest_km)),
                 )
             )
-        gpx_file = st.file_uploader(
-            texts.ROUTE_GPX,
-            type=["gpx"],
-            help=texts.ROUTE_GPX_KEEP if route else None,
-            key=f"gpx{k}",
+        track_file = st.file_uploader(
+            texts.ROUTE_TRACK,
+            type=["gpx", "geojson", "json"],
+            help=texts.ROUTE_TRACK_KEEP if route else None,
+            key=f"track{k}",
         )
         save_clicked = st.form_submit_button(texts.BUTTON_SAVE_ROUTE, type="primary")
         confirm_delete = st.checkbox(texts.CONFIRM_DELETE, key=f"confirm_delete{k}")
         delete_clicked = st.form_submit_button(texts.BUTTON_DELETE_ROUTE, disabled=route is None)
 
     if save_clicked:
-        gpx = gpx_file.getvalue() if gpx_file else None
-        if route is None and gpx is None:
-            st.error(texts.ROUTE_CREATE_NEEDS_GPX)
+        track = (track_file.name, track_file.getvalue()) if track_file else None
+        if route is None and track is None:
+            st.error(texts.ROUTE_CREATE_NEEDS_TRACK)
         else:
             base = route or Route(id="", name={"fi": ""}, themes=[], seasons=[])
             try:
@@ -191,7 +192,7 @@ with form_column:
                     ),
                     lang_text(descriptions),
                 )
-                path = store.save_route(source, Route.model_validate(card.model_dump()), gpx)
+                path = store.save_route(source, Route.model_validate(card.model_dump()), track)
             except (store.StoreError, ValidationError) as e:
                 st.error(texts.SAVE_FAILED.format(error=e))
             else:
@@ -228,8 +229,32 @@ with preview_column:
                 texts.NONE_OPTION if result.ascent_m is None else f"{result.ascent_m} m",
             )
             images.metric(texts.METRIC_IMAGES, len(route.media))
+            if route.elevation_source == "mml_dem":
+                st.caption(texts.ELEVATION_SOURCE_MML_DEM)
             if result.ascent_m is None:
                 st.caption(texts.NO_ELEVATIONS)
+                mml_key = env("MML_API_KEY")
+                if not mml_key:
+                    st.caption(texts.ELEVATIONS_KEY_MISSING)
+                if st.button(
+                    texts.BUTTON_FILL_ELEVATIONS, key=f"fill_elevations{k}", disabled=not mml_key
+                ):
+                    with st.status(texts.ELEVATIONS_FILLING) as status:
+                        try:
+                            report = fill_route(
+                                source, route.id, key=mml_key, cache_dir=tile_cache_dir()
+                            )
+                        except (BuildError, ElevationError) as e:
+                            status.update(label=texts.ELEVATIONS_FILL_FAILED, state="error")
+                            st.error(str(e))
+                        else:
+                            status.update(label=report.text(), state="complete")
+                            st.session_state["flash"] = texts.ELEVATIONS_FILLED.format(
+                                report=report.text()
+                            )
+                            st.session_state["select_next"] = route.id
+                            st.rerun()
+                cli(f"python -m manager elevation --route {route.id}")
         # ponytail: map preview with streamlit-folium in V2b
         st.caption(texts.MAP_LATER)
     with st.sidebar:

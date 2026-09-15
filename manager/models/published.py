@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict
 from manager.models.common import Bbox, LangText
 from manager.models.identifiers import (
     Difficulty,
+    ElevationSource,
     LayerSlot,
     LayerType,
     Maintainer,
@@ -89,6 +90,7 @@ class PublishedRoute(RouteSummary):
 
     lipas_id: int | None = None
     track: str
+    elevation_source: ElevationSource | None = None  # AP40; absent when not recorded (P11)
     profile: list[tuple[float, float]]
     sections: list[Section]
     nearby_services: list[NearbyService] = []

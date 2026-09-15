@@ -55,6 +55,17 @@ def build_parser() -> argparse.ArgumentParser:
     li.add_argument("--bbox", type=_bbox, help="MINX,MINY,MAXX,MAXY in EPSG:3067 (default: area)")
     li.add_argument("--types", type=_codes, default=(4411, 4412), help="Lipas type codes")
     li.add_argument("--create-routes", action="store_true", help="also create routes/<id>/")
+
+    el = subcommands.add_parser(
+        "elevation",
+        help="fill missing track elevations from the MML 2 m elevation model (AP40)",
+        description="Samples korkeusmalli_2m (WCS, MML_API_KEY) for every point without an "
+        "elevation, caches 500 m cells under TILE_CACHE_DIR/dem/ and rewrites the track as "
+        "track.gpx with elevation_source = mml_dem.",
+    )
+    el.add_argument("--data", type=Path, default=env("DATA_DIR"), help="source data root")
+    el.add_argument("--route", required=True, metavar="ID", help="route directory name")
+    el.add_argument("--overwrite", action="store_true", help="resample every point")
     return parser
 
 

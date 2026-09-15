@@ -15,6 +15,7 @@ from pydantic import (
 from manager.models.common import LangText
 from manager.models.identifiers import (
     Difficulty,
+    ElevationSource,
     ItrsLevel,
     Maintainer,
     NonMunicipalReason,
@@ -117,7 +118,8 @@ class Route(BaseModel):
     seasons: list[Season] = []  # a card without seasons shows none (P11)
     # None = not assessed (P11); an imported route starts without one.
     difficulty: Difficulty | None = None
-    track: str = "track.gpx"
+    track: str = "track.gpx"  # track.gpx or track.geojson (AP40)
+    elevation_source: ElevationSource | None = None  # None = not recorded (P11)
     cover_image: str | None = None
     itrs: Itrs | None = None
     winter_maintenance: WinterMaintenance | None = None
